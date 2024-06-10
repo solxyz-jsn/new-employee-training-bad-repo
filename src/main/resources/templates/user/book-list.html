@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" lang="ja">
+<head>
+    <title>Spring Security Example </title>
+    <link th:href="@{/css/main.css}" rel="stylesheet">
+    <link th:href="@{/css/list.css}" rel="stylesheet">
+    <link th:href="@{/css/modal.css}" rel="stylesheet">
+    <link th:href="@{/css/button.css}" rel="stylesheet">
+
+    <script th:src="@{/js/modal.js}"></script>
+
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const books = JSON.parse(/*[[ ${booksJson} ]]*/ null);
+        /*]]>*/
+
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+        window.onload = () => {
+            const tableRows = document.querySelectorAll('.table-row');
+            const modalTitle = document.getElementById('modal-book-title');
+            const modalDescription = document.getElementById('modal-book-description');
+            let selectedBook = null;
+
+            tableRows.forEach(row => {
+                row.addEventListener('click', () => {
+                    console.log(row);
+                    const bookIndex = row.getAttribute('data-isbn');
+                    selectedBook = books.find(book => book.isbn === bookIndex);
+                    modalTitle.textContent = selectedBook.title;
+                    modalDescription.textContent = selectedBook.description;
+                });
+            });
+
+            document.getElementById('add-cart').addEventListener('click', () => {
+                if (selectedBook) {
+                    // カートに追加処理
+                    fetch('/api/book/cart', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            [csrfHeader]: csrfToken
+                        },
+                        body: JSON.stringify({
+                            isbn: selectedBook.isbn
+                        })
+                    }).then(response => {
+                        if (response.ok) {
+                            alert('カートに追加しました');
+                        } else {
+                            alert('カートに追加できませんでした');
+                        }
+                    }).catch(error => {
+                        console.error('Error:', error);
+                    });
+                }
+            });
+        }
+
+    </script>
+</head>
+<body>
+
+<div id="foo"
+     th:replace="~{common/nav-bar :: bar}"></div>
+<div class="table-container">
+    <table id="book-table" class="table">
+        <thead class="table-header">
+        <tr>
+            <th scope="col" class="table-cell">書籍名</th>
+            <th scope="col" class="table-cell">出版社</th>
+            <th scope="col" class="table-cell">著者名</th>
+            <th scope="col" class="table-cell">在庫</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        <tr th:each="book : ${books}" data-modal-target="default-modal" data-modal-toggle="default-modal" class="table-row" th:attr="data-isbn=${book.isbn}">
+            <th scope="row" class="table-cell font-medium" th:text="${book.title}"></th>
+            <td class="table-cell" th:text="${book.publisher}"></td>
+            <td class="table-cell" th:text="${book.author}"></td>
+            <td class="table-cell" th:text="${book.availableStock}"></td>
+        </tr>
+
+        </tbody>
+    </table>
+</div>
+
+<!-- Main modal -->
+<div id="default-modal" class="modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog" data-modal-hide="default-modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <!-- Modal header -->
+            <div class="modal-header">
+                <h3 id="modal-book-title" class="modal-title"></h3>
+                <button type="button" class="modal-close" data-modal-hide="default-modal">
+                    <svg class="modal-close-icon" data-modal-hide="default-modal" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" data-modal-hide="default-modal" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only" data-modal-hide="default-modal" >Close modal</span>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <div class="modal-body">
+                <p id="modal-book-description"></p>
+            </div>
+            <!-- Modal footer -->
+            <div class="modal-footer">
+                <button id="add-cart" data-modal-hide="default-modal" type="button" class="modal-accept add-button">カートに入れる</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-overlay" class="modal-overlay"></div>
+
+</body>
+</html>

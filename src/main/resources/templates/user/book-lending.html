@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" lang="ja">
+
+<head>
+    <title>書籍管理アプリ - レンタル中</title>
+    <link th:href="@{/css/main.css}" rel="stylesheet">
+    <link th:href="@{/css/list.css}" rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"/>
+
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+            const books = JSON.parse(/*[[ ${booksJson} ]]*/ null);
+        /*]]>*/
+
+    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+    window.onload = () => {
+      document.getElementById("return-book").addEventListener("click", (event) => {
+         const isbn = event.target.getAttribute("data-isbn");
+         fetch("/api/book/return", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              [csrfHeader]: csrfToken,
+            },
+            body: JSON.stringify({
+              isbn: isbn,
+            }),
+          })
+            .then((response) => {
+              if (response.ok) {
+                alert("書籍を返却しました");
+                location.reload();
+              } else {
+                alert("書籍の返却に失敗しました");
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+            });
+      });
+    };
+
+    </script>
+</head>
+<body>
+<div id="foo" th:replace="~{common/nav-bar :: bar}"></div>
+<div class="table-container">
+    <table id="book-table" class="table">
+        <thead class="table-header">
+        <tr>
+            <th scope="col" class="table-cell">書籍名</th>
+            <th scope="col" class="table-cell">出版社</th>
+            <th scope="col" class="table-cell">著者名</th>
+            <th scope="col" class="table-cell">貸出日</th>
+            <th scope="col" class="table-cell">返却</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="book : ${books}" class="table-row">
+            <th scope="row" class="table-cell font-medium" th:text="${book.title}"></th>
+            <td class="table-cell" th:text="${book.publisher}"></td>
+            <td class="table-cell" th:text="${book.author}"></td>
+            <td class="table-cell" th:text="${#temporals.format(book.rentalAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+            <td class="table-cell" style="text-align: center; vertical-align: middle;">
+                <label id="return-book" style="cursor: pointer;display: inline-block;vertical-align: middle;" class="material-symbols-outlined"
+                       th:attr="data-isbn=${book.isbn}">unarchive</label>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

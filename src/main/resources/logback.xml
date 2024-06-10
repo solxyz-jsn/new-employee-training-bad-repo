@@ -1,0 +1,42 @@
+<configuration>
+
+    <contextName>${HOSTNAME}</contextName>
+
+    <!-- コンソールアペンダーの設定 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- ログの出力フォーマットを設定 -->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%contextName] [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ファイルアペンダーの設定 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- ログファイルの設定 -->
+        <file>logs/app.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- ログファイルのローテーションの設定 -->
+            <fileNamePattern>logs/archived/app.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>10MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <!-- ログの出力フォーマットを設定 -->
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%contextName] %-5level [%thread] %logger{36} - %msg%n</pattern>
+        </encoder>
+        <!-- INFOレベル以上のログをファイルに出力するフィルター -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+    </appender>
+
+    <!-- ルートロガーの設定 -->
+    <root level="DEBUG">
+        <!-- コンソールとファイルに出力するアペンダーを設定 -->
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+</configuration>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" lang="ja">
+<head>
+    <title>Spring Security Example </title>
+    <link th:href="@{/css/main.css}" rel="stylesheet">
+    <link th:href="@{/css/cart.css}" rel="stylesheet">
+    <link th:href="@{/css/list.css}" rel="stylesheet">
+    <link th:href="@{/css/button.css}" rel="stylesheet">
+</head>
+<body>
+
+<div id="header"
+     th:replace="~{common/nav-bar :: bar}"></div>
+<div th:if="${errorMessage}">
+    <div class="alert alert-danger" role="alert">
+        <svg class="alert-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+             viewBox="0 0 20 20">
+            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+        </svg>
+        <span class="sr-only">Info</span>
+        <div class="alert-content">
+            <span class="alert-title" th:text="${errorMessage}"></span>
+        </div>
+    </div>
+</div>
+<div class="table-container">
+    <table id="book-table" class="table">
+        <thead class="table-header">
+        <tr>
+            <th scope="col" class="table-cell">書籍名</th>
+            <th scope="col" class="table-cell">出版社</th>
+            <th scope="col" class="table-cell">著者名</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="book : ${cartList}" class="table-row">
+            <th scope="row" class="table-cell font-medium" th:text="${book.title}"></th>
+            <td class="table-cell" th:text="${book.publisher}"></td>
+            <td class="table-cell" th:text="${book.author}"></td>
+        </tr>
+        </tbody>
+
+    </table>
+    <form th:action="@{/book/cart}" method="post">
+        <button class="rental-button">借りる</button>
+    </form>
+</div>
+
+</body>
+</html>

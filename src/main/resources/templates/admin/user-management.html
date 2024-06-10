@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ユーザ管理</title>
+    <link th:href="@{/css/main.css}" rel="stylesheet">
+    <link th:href="@{/css/list.css}" rel="stylesheet">
+    <link th:href="@{/css/button.css}" rel="stylesheet">
+
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <script th:src="@{/js/fetcher.js}"></script>
+    <script th:inline="javascript">
+const ROOT_API_URL = "/api/admin/management/user";
+const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+const headers = {
+  "Content-Type": "application/json",
+  [csrfHeader]: csrfToken,
+};
+
+function addUser() {
+  const API_ENDPOINT = ROOT_API_URL;
+  const userName = document.getElementById("userName").value;
+  const email = document.getElementById("email").value;
+  const isAdmin = document.getElementById("isAdmin").checked;
+  const password = document.getElementById("password").value;
+  const managedUser = {
+    userName: userName,
+    email: email,
+    isAdmin: isAdmin,
+    password: password,
+  };
+
+  fetcher.post(API_ENDPOINT, headers, managedUser)
+    .then(() => {
+      alert("追加しました");
+      location.reload();
+    })
+    .catch((error) => {
+      alert(error.message);
+    });
+}
+
+function updateUser(event) {
+  const API_ENDPOINT = ROOT_API_URL;
+  const row = event.target.closest(".table-row");
+  const userId = row.querySelector(".userId").textContent;
+  const userName = row.querySelector(".userName").value;
+  const email = row.querySelector(".email").value;
+  const password = row.querySelector(".password").value;
+  const isAdmin = row.querySelector(".isAdmin").checked;
+
+  const managedUser = {
+    userId: userId,
+    userName: userName,
+    email: email,
+    isAdmin: isAdmin,
+    password: password,
+  };
+
+  fetcher.put(API_ENDPOINT, headers, managedUser)
+    .then(() => {
+      alert("更新しました");
+      location.reload();
+    })
+    .catch((error) => {
+      alert(error.message);
+    });
+}
+
+function deleteUser(event) {
+  const API_ENDPOINT = ROOT_API_URL + "/";
+  const row = event.target.closest(".table-row");
+  const userId = row.querySelector(".userId").textContent;
+  const managedUser = {
+    userId: userId,
+  };
+
+  fetcher.delete(API_ENDPOINT + userId, headers)
+    .then(() => {
+      alert("削除しました");
+      location.reload();
+    })
+    .catch((error) => {
+      alert(error.message);
+    });
+}
+
+    </script>
+</head>
+<body>
+<div id="foo" th:replace="~{common/nav-bar :: bar}"></div>
+<h2 class="section-title">ユーザ追加</h2>
+<div class="table-container">
+    <table id="book-table" class="table">
+        <thead class="table-header">
+        <tr>
+            <th scope="col" class="table-cell">ユーザID</th>
+            <th scope="col" class="table-cell">ユーザ名</th>
+            <th scope="col" class="table-cell">メール</th>
+            <th scope="col" class="table-cell">新規パスワード</th>
+            <th scope="col" class="table-cell">管理者</th>
+            <th scope="col" class="table-cell">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="table-row">
+            <td class="table-cell">
+                <laba>******</laba>
+            </td>
+            <td class="table-cell">
+                <input id="userName" type="text" placeholder="田中　太郎">
+            </td>
+            <td class="table-cell">
+                <input id="email" type="text" placeholder="メールアドレス">
+            </td>
+            <td class="table-cell">
+                <input id="password" type="password" placeholder="********" maxlength="10">
+            </td>
+            <td class="table-cell">
+                <input id="isAdmin" type="checkbox">
+            </td>
+            <td class="table-cell">
+                <button class="add-button" onclick="addUser()">追加</button>
+            </td>
+        </tr>
+
+        <tr th:each="user : ${users}" class="table-row">
+            <th scope="row" class="table-cell font-medium"><label class="userId" th:text="${user.userId}"></label></th>
+            <td class="table-cell"><input class="userName" type="text" th:value="${user.userName}"></td>
+            <td class="table-cell"><input class="email" type="text" th:value="${user.email}"></td>
+            <td class="table-cell"><input class="password" type="password" placeholder="********" maxlength="10"></td>
+            <td class="table-cell"><input class="isAdmin" type="checkbox" th:checked="${user.isAdmin}"></td>
+            <td class="table-cell">
+                <button class="update-button" onclick="updateUser(event)">更新</button>
+                <button class="delete-button" onclick="deleteUser(event)">削除</button>
+        </tr>
+
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

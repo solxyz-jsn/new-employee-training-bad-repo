@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>書籍管理</title>
+    <link th:href="@{/css/main.css}" rel="stylesheet">
+    <link th:href="@{/css/management.css}" rel="stylesheet">
+    <link th:href="@{/css/button.css}" rel="stylesheet">
+
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <script th:src="@{/js/fetcher.js}"></script>
+    <script th:inline="javascript">
+const ROOT_API_URL = "/api/admin/management/book";
+const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+const headers = {
+  "Content-Type": "application/json",
+  [csrfHeader]: csrfToken,
+};
+
+function addBook() {
+  const API_ENDPOINT = ROOT_API_URL;
+  const isbn = document.getElementById("isbn").value;
+  const title = document.getElementById("title").value;
+  const publisher = document.getElementById("publisher").value;
+  const author = document.getElementById("author").value;
+  const description = document.getElementById("description").value;
+  const stock = document.getElementById("stock").value;
+  const bookManagementModel = {
+    isbn: isbn,
+    title: title,
+    author: author,
+    publisher: publisher,
+    description: description,
+    stock: stock,
+  };
+
+  fetcher.post(API_ENDPOINT, headers, bookManagementModel)
+    .then(() => {
+      alert("追加しました");
+      location.reload();
+    })
+    .catch((error) => {
+      alert(error.message);
+    });
+}
+
+function updateBook(event) {
+  const API_ENDPOINT = ROOT_API_URL;
+  const row = event.target.closest(".book-item");
+  const isbn = row.querySelector(".isbn").dataset.isbn;
+  const title = row.querySelector(".title").value;
+  const publisher = row.querySelector(".publisher").value;
+  const author = row.querySelector(".author").value;
+  const description = row.querySelector(".description").value;
+  const stock = row.querySelector(".stock").value;
+  const bookManagementModel = {
+    isbn: isbn,
+    title: title,
+    author: author,
+    publisher: publisher,
+    description: description,
+    stock: stock,
+  };
+
+  fetcher.put(API_ENDPOINT, headers, bookManagementModel)
+    .then(() => {
+      alert("更新しました");
+      location.reload();
+    })
+    .catch((error) => {
+      alert(error.message);
+    });
+}
+
+function deleteBook(event) {
+  const API_ENDPOINT = ROOT_API_URL + "/";
+  const row = event.target.closest(".book-item");
+  const isbn = row.querySelector(".isbn").dataset.isbn;
+
+  fetcher.delete(API_ENDPOINT + isbn, headers)
+    .then(() => {
+      alert("削除しました");
+      location.reload();
+    })
+    .catch((error) => {
+      alert(error.message);
+    });
+}
+
+    </script>
+</head>
+
+<body>
+<div id="foo" th:replace="~{common/nav-bar :: bar}"></div>
+<h2 class="section-title">書籍追加</h2>
+<div class="container">
+    <div class="book-form">
+        <label for="isbn">ISBN<span class="required">(必須:数字13桁)</span></label>
+        <input type="text" maxlength="13" id="isbn" placeholder="1234567890123">
+
+        <label for="title">書籍名<span class="required">(必須)</span></label>
+        <input type="text" id="title" placeholder="書籍名">
+
+        <label for="publisher">出版社<span class="required">(必須)</span></label>
+        <input type="text" id="publisher" placeholder="出版社">
+
+        <label for="author">著者名<span class="required">(必須)</span></label>
+        <input type="text" id="author" placeholder="著者名">
+
+        <label for="description">説明</label>
+        <textarea id="description" placeholder="説明"></textarea>
+
+        <label for="stock">在庫<span class="required">(必須)</span></label>
+        <input type="number" min="0" id="stock" placeholder="0">
+
+        <button class="add-button" onclick="addBook()">追加</button>
+    </div>
+</div>
+<h2 class="section-title">書籍一覧</h2>
+<div class="container-group">
+    <div class="book-container">
+        <div th:each="book : ${books}" class="book-item">
+            <div class="book-field">
+                <label>ISBN</label>
+                <span class="isbn" th:text="${book.displayedIsbn}"
+                      th:attr="data-isbn=${book.isbn}"></span>
+            </div>
+
+            <div class="book-field">
+                <label>書籍名</label>
+                <input class="title" type="text" th:value="${book.title}">
+            </div>
+
+            <div class="book-field">
+                <label>出版社</label>
+                <input class="publisher" type="text" th:value="${book.publisher}">
+            </div>
+
+            <div class="book-field">
+                <label>著者名</label>
+                <input class="author" type="text" th:value="${book.author}">
+            </div>
+
+            <div class="book-field">
+                <label>説明</label>
+                <textarea class="description" th:text="${book.description}"></textarea>
+            </div>
+
+            <div class="book-field">
+                <label>在庫</label>
+                <input class="stock" type="number" th:value="${book.Stock}">
+            </div>
+
+            <div class="book-field">
+                <label>作成日</label>
+                <span class="createdAt" th:text="${book.createdAt}"></span>
+            </div>
+
+            <div class="book-field">
+                <label>更新日</label>
+                <span th:text="${book.updatedAt}"></span>
+            </div>
+
+            <div class="book-actions">
+                <button class="update-button" onclick="updateBook(event)">更新</button>
+                <button class="delete-button" onclick="deleteBook(event)">削除</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" lang="ja">
+<head>
+    <title>Spring Security Example </title>
+    <link th:href="@{/css/login.css}" rel="stylesheet">
+
+</head>
+<body>
+<div th:if="${param.error}">
+    <div class="alert alert-danger" role="alert">
+        <svg class="alert-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+        </svg>
+        <span class="sr-only">Info</span>
+        <div class="alert-content">
+            <span class="alert-title">Invalid username and password.</span>
+        </div>
+    </div>
+</div>
+
+<div th:if="${param.logout}">
+    <div class="alert alert-success" role="alert">
+        <svg class="alert-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+        </svg>
+        <span class="sr-only">Info</span>
+        <div class="alert-content">
+            <span class="alert-title">You have been logged out.</span>
+        </div>
+    </div>
+</div>
+
+<div class="login-container">
+    <form class="login-form" th:action="@{/login}" method="post">
+        <h5 class="form-title">書籍管理システムログイン</h5>
+        <div class="form-group">
+            <label for="username" class="form-label">Your email</label>
+            <input type="email" name="username" id="username" class="form-input" placeholder="name@company.com" required />
+        </div>
+        <div class="form-group">
+            <label for="password" class="form-label">Your password</label>
+            <input type="password" name="password" id="password" placeholder="••••••••" class="form-input" required />
+        </div>
+        <button type="submit" class="login-button">Login to your account</button>
+    </form>
+</div>
+</body>
+</html>

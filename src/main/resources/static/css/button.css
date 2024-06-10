@@ -1,0 +1,54 @@
+button {
+    border: none;
+    min-height: auto;
+    min-width: 32px;
+    text-align: center;
+    text-decoration: none;
+    background-color: transparent;
+    border-radius: 8px;
+    padding: 3px 5px;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.add-button {
+    color: #007BFF;
+    border: 2px solid #007BFF;
+}
+
+.add-button:hover {
+    background-color: #007BFF;
+    color: #FFFFFF;
+}
+
+.update-button {
+    color: #008000;
+    border: 2px solid #008000;
+}
+
+.update-button:hover {
+    background-color: #008000;
+    color: #FFFFFF;
+}
+
+.delete-button {
+    color: #FF0000;
+    border: 2px solid #FF0000;
+}
+
+.delete-button:hover {
+    background-color: #FF0000;
+    color: #FFFFFF;
+}
+
+.rental-button {
+    color: #008000;
+    border: 2px solid #008000;
+}
+
+.rental-button:hover {
+    background-color: #008000;
+    color: #FFFFFF;
+}

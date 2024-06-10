@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      lang="ja">
+
+<body>
+<div th:fragment="bar">
+
+    <nav>
+        <div class="container">
+            <a href="/book/list" class="logo">
+                <span>書籍管理アプリ</span>
+            </a>
+            <button class="menu-toggle" data-collapse-toggle="navbar-default" type="button"
+                    aria-controls="navbar-default" aria-expanded="false">
+                <span class="sr-only">Open main menu</span>
+                <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M1 1h15M1 7h15M1 13h15"/>
+                </svg>
+            </button>
+            <div class="menu" id="navbar-default">
+                <ul>
+                    <li>
+                        <a th:href="@{/book/return}">貸出中の本</a>
+                    </li>
+                    <li>
+                        <a th:href="@{/book/cart}">カート</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="dropdown">
+                <label class="dropdown-button" th:text="${#authentication.name}"></label><span
+                    class="dropdown-arrow"> ▽</span>
+                <div class="dropdown-content">
+                    <div sec:authorize="hasRole('ROLE_ADMIN')">
+                        <a href="/admin/management/book">書籍管理</a>
+                        <a href="/admin/management/user">ユーザ管理</a>
+                    </div>
+                    <form id="logout-form" action="/logout" method="post" style="display: none;">
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                    </form>
+                    <a href="#"
+                       onclick="event.preventDefault(); document.getElementById('logout-form').submit();">ログアウト</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+</div>
+</body>
+</html>
