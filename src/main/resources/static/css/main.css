@@ -1,3 +1,8 @@
+html {
+    margin-left: calc(100vw - 100%);
+    margin-right: 0;
+}
+
 nav {
     background-color: #fff;
     border-bottom: 1px solid #e5e7eb;
@@ -8,7 +13,7 @@ nav.dark {
 }
 
 .container {
-    max-width: 1280px;
+    max-width: 1fr;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -95,6 +100,7 @@ a.logo {
     flex-direction: column;
     padding: 1rem;
     margin-top: 1rem;
+    margin: 0px;
     border: 1px solid #e5e7eb;
     border-radius: 0.5rem;
     background-color: #f9fafb;
@@ -177,7 +183,7 @@ a.logo {
 }
 
 .dropdown {
-  position: relative;
+ 　position: relative;
   display: inline-block;
 }
 
@@ -185,16 +191,19 @@ a.logo {
   background-color: #f9fafb;
   display: none;
   position: absolute;
-  min-width: 160px;
+  height: auto;
+  padding-top:15px;
+  padding-left:15px;
+  padding-right:15px;
   z-index: 1;
   box-shadow: 0px 3px 8px rgba(50, 50, 50, 0.25);
   border-radius: 5px;
 }
 
 .dropdown-content a {
-  color: black;
-  padding: 12px 16px;
+  display: block;
   text-decoration: none;
+  margin-bottom:15px;
   display: block;
 }
 
