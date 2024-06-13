@@ -58,7 +58,7 @@ tasks.named('test') {
 // SQLiteDBを起動し、初期データを挿入する
 tasks.register('setupDatabase', Exec) {
     // SQLiteのCLIのパス
-    def sqliteCmdPath = "./sqlite/sqlite3.exe"
+    def sqliteCmdPath = '$projectDir/sqlite/sqlite3.exe'
     // .sqlファイルのパス
     def sqlFilePath = 'sql/sql.sql'
     // dbファイルの相対パス
