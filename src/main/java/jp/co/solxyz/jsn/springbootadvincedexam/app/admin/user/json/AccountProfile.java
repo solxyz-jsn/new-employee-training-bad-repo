@@ -51,4 +51,12 @@ public class AccountProfile {
     @Size(max = 100, message = "パスワードは100文字以下である必要があります。")
     private String password;
 
+    /**
+     * リクエストマッピング時に参照される命名はsetIsAdminであるが
+     * Dataアノテーションによって生成されるsetterはsetAdminになるため明示的に宣言している
+     * @param isAdmin
+     */
+    public void setIsAdmin(boolean isAdmin) {
+        this.isAdmin = isAdmin;
+    }
 }
