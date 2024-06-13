@@ -1,11 +1,10 @@
-package jp.co.solxyz.jsn.springbootadvincedexam.app.user.service;
+package jp.co.solxyz.jsn.springbootadvincedexam.app.admin.user.service;
 
-import jp.co.solxyz.jsn.springbootadvincedexam.app.user.dto.UserAccountDto;
-import jp.co.solxyz.jsn.springbootadvincedexam.app.user.json.UserManagementForm;
-import jp.co.solxyz.jsn.springbootadvincedexam.app.user.model.UserManagementModel;
-import jp.co.solxyz.jsn.springbootadvincedexam.app.user.util.UUIDGenerator;
+import jp.co.solxyz.jsn.springbootadvincedexam.app.admin.user.json.AccountProfile;
+import jp.co.solxyz.jsn.springbootadvincedexam.app.admin.user.model.UserManagementModel;
 import jp.co.solxyz.jsn.springbootadvincedexam.component.user.UserAccountManager;
 import jp.co.solxyz.jsn.springbootadvincedexam.infra.entity.user.UserAccount;
+import jp.co.solxyz.jsn.springbootadvincedexam.util.UUIDGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,7 +40,7 @@ class UserManagementServiceTest {
     UserManagementService service;
 
     @Mock
-    UserAccountManager userServicesBizlogic;
+    UserAccountManager userAccountManager;
 
     private final Instant TEST_TIME = Instant.parse("2020-01-01T00:00:00Z");
 
@@ -83,25 +82,25 @@ class UserManagementServiceTest {
         expectedUser2.setAdmin(true);
         List<UserManagementModel> expected = Arrays.asList(expectedUser1, expectedUser2);
 
-        UserAccountDto user1 = new UserAccountDto();
+        UserAccount user1 = new UserAccount();
         user1.setUserId("123e4567-e89b-12d3-a456-426614174000");
         user1.setUsername("user1");
         user1.setEmail("test@solxyz.co.jp");
         user1.setIsAdmin(false);
         user1.setUpdatedAt(TEST_TIME);
-        UserAccountDto user2 = new UserAccountDto();
+        UserAccount user2 = new UserAccount();
         user2.setUserId("123e4567-e89b-12d3-a456-426614174001");
         user2.setUsername("user2");
         user2.setEmail("test@solxyz.co.jp");
         user2.setIsAdmin(true);
         user2.setUpdatedAt(TEST_TIME);
-        List<UserAccountDto> users = Arrays.asList(user1, user2);
+        List<UserAccount> users = Arrays.asList(user1, user2);
 
-        when(userServicesBizlogic.getAllUsersWithoutPassword()).thenReturn(users);
+        when(userAccountManager.getAllUsersWithoutPassword()).thenReturn(users);
 
         List<UserManagementModel> result = service.getAllUsers();
 
-        verify(userServicesBizlogic, times(1)).getAllUsersWithoutPassword();
+        verify(userAccountManager, times(1)).getAllUsersWithoutPassword();
         assertThat(result.size()).isEqualTo(2);
         assertThat(result).isEqualTo(expected);
     }
@@ -116,20 +115,20 @@ class UserManagementServiceTest {
         expected.setAdmin(true);
         List<UserManagementModel> expectedList = List.of(expected);
 
-        UserAccountDto userAccountDto = new UserAccountDto();
-        userAccountDto.setUserId(TEST_UUID);
-        userAccountDto.setUsername("testUsername");
-        userAccountDto.setEmail("test@solxyz.co.jp");
-        userAccountDto.setIsAdmin(true);
-        userAccountDto.setUpdatedAt(TEST_TIME);
+        UserAccount userAccount = new UserAccount();
+        userAccount.setUserId(TEST_UUID);
+        userAccount.setUsername("testUsername");
+        userAccount.setEmail("test@solxyz.co.jp");
+        userAccount.setIsAdmin(true);
+        userAccount.setUpdatedAt(TEST_TIME);
 
-        List<UserAccountDto> users = List.of(userAccountDto);
+        List<UserAccount> users = List.of(userAccount);
 
-        when(userServicesBizlogic.getAllUsersWithoutPassword()).thenReturn(users);
+        when(userAccountManager.getAllUsersWithoutPassword()).thenReturn(users);
 
         List<UserManagementModel> result = service.getAllUsers();
 
-        verify(userServicesBizlogic, times(1)).getAllUsersWithoutPassword();
+        verify(userAccountManager, times(1)).getAllUsersWithoutPassword();
         assertThat(result.size()).isEqualTo(1);
         assertThat(result).isEqualTo(expectedList);
     }
@@ -137,14 +136,14 @@ class UserManagementServiceTest {
     @Test
     @DisplayName("ユーザ情報がない場合、空のリストを返す")
     void shouldReturnEmptyListIfNoUsers() {
-        List<UserAccountDto> users = List.of();
+        List<UserAccount> users = List.of();
         List<UserManagementModel> expected = List.of();
 
-        when(userServicesBizlogic.getAllUsersWithoutPassword()).thenReturn(users);
+        when(userAccountManager.getAllUsersWithoutPassword()).thenReturn(users);
 
         List<UserManagementModel> result = service.getAllUsers();
 
-        verify(userServicesBizlogic, times(1)).getAllUsersWithoutPassword();
+        verify(userAccountManager, times(1)).getAllUsersWithoutPassword();
         assertThat(result.size()).isEqualTo(0);
         assertThat(result).isEqualTo(expected);
     }
@@ -168,14 +167,14 @@ class UserManagementServiceTest {
         userAccountWithPassword.setPassword("testPassword");
         userAccountWithPassword.setUpdatedAt(TEST_TIME);
 
-        UserManagementForm userManagementFormWithPassword = new UserManagementForm();
+        AccountProfile userManagementFormWithPassword = new AccountProfile();
         userManagementFormWithPassword.setUserId(TEST_UUID);
         userManagementFormWithPassword.setIsAdmin(true);
         userManagementFormWithPassword.setEmail("test@solxyz.co.jp");
         userManagementFormWithPassword.setUserName("testUsername");
         userManagementFormWithPassword.setPassword("testPassword");
 
-        doNothing().when(userServicesBizlogic).addUser(userAccountWithPassword);
+        doNothing().when(userAccountManager).addUser(userAccountWithPassword);
 
         try {
             service.addUser(userManagementFormWithPassword);
@@ -184,7 +183,7 @@ class UserManagementServiceTest {
             fail();
         }
 
-        verify(userServicesBizlogic, times(1)).addUser(expected);
+        verify(userAccountManager, times(1)).addUser(expected);
     }
 
     @Test
@@ -198,22 +197,22 @@ class UserManagementServiceTest {
         userAccountWithPassword.setPassword("testPassword");
         userAccountWithPassword.setUpdatedAt(TEST_TIME);
 
-        UserManagementForm userManagementFormWithPassword = new UserManagementForm();
+        AccountProfile userManagementFormWithPassword = new AccountProfile();
         userManagementFormWithPassword.setUserId(TEST_UUID);
         userManagementFormWithPassword.setIsAdmin(true);
         userManagementFormWithPassword.setEmail("test@solxyz.co.jp");
         userManagementFormWithPassword.setUserName("testUsername");
         userManagementFormWithPassword.setPassword("testPassword");
 
-        doNothing().when(userServicesBizlogic).addUser(userAccountWithPassword);
-        doThrow(JpaSystemException.class).when(userServicesBizlogic).addUser(userAccountWithPassword);
+        doNothing().when(userAccountManager).addUser(userAccountWithPassword);
+        doThrow(JpaSystemException.class).when(userAccountManager).addUser(userAccountWithPassword);
 
         try {
             service.addUser(userManagementFormWithPassword);
             fail();
         } catch (Exception e) {
             assertThat(e).isInstanceOf(JpaSystemException.class);
-            verify(userServicesBizlogic, times(1)).addUser(userAccountWithPassword);
+            verify(userAccountManager, times(1)).addUser(userAccountWithPassword);
         }
     }
 
@@ -228,21 +227,21 @@ class UserManagementServiceTest {
         userAccountWithPassword.setPassword("testPassword");
         userAccountWithPassword.setUpdatedAt(TEST_TIME);
 
-        UserManagementForm userManagementFormWithPassword = new UserManagementForm();
+        AccountProfile userManagementFormWithPassword = new AccountProfile();
         userManagementFormWithPassword.setUserId(TEST_UUID);
         userManagementFormWithPassword.setIsAdmin(true);
         userManagementFormWithPassword.setEmail("test@solxyz.co.jp");
         userManagementFormWithPassword.setUserName("testUsername");
         userManagementFormWithPassword.setPassword("testPassword");
 
-        doNothing().when(userServicesBizlogic).addUser(userAccountWithPassword);
-        doThrow(JpaSystemException.class).when(userServicesBizlogic).addUser(userAccountWithPassword);
+        doNothing().when(userAccountManager).addUser(userAccountWithPassword);
+        doThrow(JpaSystemException.class).when(userAccountManager).addUser(userAccountWithPassword);
 
         try {
             service.addUser(userManagementFormWithPassword);
             fail();
         } catch (JpaSystemException e) {
-            verify(userServicesBizlogic, times(1)).addUser(userAccountWithPassword);
+            verify(userAccountManager, times(1)).addUser(userAccountWithPassword);
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -260,21 +259,21 @@ class UserManagementServiceTest {
         expectedUserAccountWithPassword.setPassword("testPassword");
         expectedUserAccountWithPassword.setUpdatedAt(TEST_TIME);
 
-        UserAccountDto userAccountDto = new UserAccountDto();
-        userAccountDto.setUserId(TEST_UUID);
-        userAccountDto.setUsername("testUsername");
-        userAccountDto.setEmail("test@solxyz.co.jp");
-        userAccountDto.setIsAdmin(true);
-        userAccountDto.setUpdatedAt(TEST_TIME);
+        UserAccount userAccount = new UserAccount();
+        userAccount.setUserId(TEST_UUID);
+        userAccount.setUsername("testUsername");
+        userAccount.setEmail("test@solxyz.co.jp");
+        userAccount.setIsAdmin(true);
+        userAccount.setUpdatedAt(TEST_TIME);
 
-        UserManagementForm userManagementFormWithPassword = new UserManagementForm();
+        AccountProfile userManagementFormWithPassword = new AccountProfile();
         userManagementFormWithPassword.setUserId(TEST_UUID);
         userManagementFormWithPassword.setIsAdmin(true);
         userManagementFormWithPassword.setEmail("test@solxyz.co.jp");
         userManagementFormWithPassword.setUserName("testUsername");
         userManagementFormWithPassword.setPassword("testPassword");
 
-        when(userServicesBizlogic.findByIdWithoutPassword(userManagementFormWithPassword.getUserId())).thenReturn(userAccountDto);
+        when(userAccountManager.findByIdWithoutPassword(userManagementFormWithPassword.getUserId())).thenReturn(userAccount);
 
         try {
             service.updateUser(userManagementFormWithPassword);
@@ -283,35 +282,35 @@ class UserManagementServiceTest {
             fail();
         }
 
-        verify(userServicesBizlogic, times(1)).updateUserWithPassword(expectedUserAccountWithPassword, TEST_TIME);
+        verify(userAccountManager, times(1)).updateUserWithPassword(expectedUserAccountWithPassword, TEST_TIME);
     }
 
     @Test
     @DisplayName("パスワードを含めたユーザの更新に失敗した場合、JPASystemExceptionがスローされる")
     void shouldThrowJpaSystemExceptionIfUpdateUserWithPasswordFails() {
-        UserAccountDto userAccountDto = new UserAccountDto();
-        userAccountDto.setUserId(TEST_UUID);
-        userAccountDto.setUsername("testUsername");
-        userAccountDto.setEmail("test@solxyz.co.jp");
-        userAccountDto.setIsAdmin(true);
-        userAccountDto.setUpdatedAt(TEST_TIME);
+        UserAccount userAccount = new UserAccount();
+        userAccount.setUserId(TEST_UUID);
+        userAccount.setUsername("testUsername");
+        userAccount.setEmail("test@solxyz.co.jp");
+        userAccount.setIsAdmin(true);
+        userAccount.setUpdatedAt(TEST_TIME);
 
-        UserManagementForm userManagementFormWithPassword = new UserManagementForm();
+        AccountProfile userManagementFormWithPassword = new AccountProfile();
         userManagementFormWithPassword.setUserId(TEST_UUID);
         userManagementFormWithPassword.setIsAdmin(true);
         userManagementFormWithPassword.setEmail("test@solxyz.co.jp");
         userManagementFormWithPassword.setUserName("testUsername");
         userManagementFormWithPassword.setPassword("testPassword");
 
-        when(userServicesBizlogic.findByIdWithoutPassword(userManagementFormWithPassword.getUserId())).thenReturn(userAccountDto);
-        doThrow(JpaSystemException.class).when(userServicesBizlogic).updateUserWithPassword(any(UserAccount.class), any(Instant.class));
+        when(userAccountManager.findByIdWithoutPassword(userManagementFormWithPassword.getUserId())).thenReturn(userAccount);
+        doThrow(JpaSystemException.class).when(userAccountManager).updateUserWithPassword(any(UserAccount.class), any(Instant.class));
 
         try {
             service.updateUser(userManagementFormWithPassword);
             fail();
         } catch (JpaSystemException e) {
-            verify(userServicesBizlogic, times(1)).findByIdWithoutPassword(userManagementFormWithPassword.getUserId());
-            verify(userServicesBizlogic, times(1)).updateUserWithPassword(any(UserAccount.class), any(Instant.class));
+            verify(userAccountManager, times(1)).findByIdWithoutPassword(userManagementFormWithPassword.getUserId());
+            verify(userAccountManager, times(1)).updateUserWithPassword(any(UserAccount.class), any(Instant.class));
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -321,29 +320,29 @@ class UserManagementServiceTest {
     @Test
     @DisplayName("パスワードを含めたユーザの更新に失敗した場合、DataAccessExceptionのサブクラスがスローされる")
     void shouldThrowDataAccessExceptionIfUpdateUserWithPasswordFails() {
-        UserAccountDto userAccountDto = new UserAccountDto();
-        userAccountDto.setUserId(TEST_UUID);
-        userAccountDto.setUsername("testUsername");
-        userAccountDto.setEmail("test@solxyz.co.jp");
-        userAccountDto.setIsAdmin(true);
-        userAccountDto.setUpdatedAt(TEST_TIME);
+        UserAccount userAccount = new UserAccount();
+        userAccount.setUserId(TEST_UUID);
+        userAccount.setUsername("testUsername");
+        userAccount.setEmail("test@solxyz.co.jp");
+        userAccount.setIsAdmin(true);
+        userAccount.setUpdatedAt(TEST_TIME);
 
-        UserManagementForm userManagementFormWithPassword = new UserManagementForm();
+        AccountProfile userManagementFormWithPassword = new AccountProfile();
         userManagementFormWithPassword.setUserId(TEST_UUID);
         userManagementFormWithPassword.setIsAdmin(true);
         userManagementFormWithPassword.setEmail("test@solxyz.co.jp");
         userManagementFormWithPassword.setUserName("testUsername");
         userManagementFormWithPassword.setPassword("testPassword");
 
-        when(userServicesBizlogic.findByIdWithoutPassword(userManagementFormWithPassword.getUserId())).thenReturn(userAccountDto);
-        doThrow(DataIntegrityViolationException.class).when(userServicesBizlogic).updateUserWithPassword(any(UserAccount.class), any(Instant.class));
+        when(userAccountManager.findByIdWithoutPassword(userManagementFormWithPassword.getUserId())).thenReturn(userAccount);
+        doThrow(DataIntegrityViolationException.class).when(userAccountManager).updateUserWithPassword(any(UserAccount.class), any(Instant.class));
 
         try {
             service.updateUser(userManagementFormWithPassword);
             fail();
         } catch (DataAccessException e) {
-            verify(userServicesBizlogic, times(1)).findByIdWithoutPassword(userManagementFormWithPassword.getUserId());
-            verify(userServicesBizlogic, times(1)).updateUserWithPassword(any(UserAccount.class), any(Instant.class));
+            verify(userAccountManager, times(1)).findByIdWithoutPassword(userManagementFormWithPassword.getUserId());
+            verify(userAccountManager, times(1)).updateUserWithPassword(any(UserAccount.class), any(Instant.class));
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -353,29 +352,30 @@ class UserManagementServiceTest {
     @Test
     @DisplayName("パスワードを含めたユーザの更新に失敗した場合、OptimisticLockingFailureExceptionがスローされる")
     void shouldThrowOptimisticLockingFailureExceptionIfUpdateUserWithPasswordFails() {
-        UserAccountDto userAccountDto = new UserAccountDto();
-        userAccountDto.setUserId(TEST_UUID);
-        userAccountDto.setUsername("testUsername");
-        userAccountDto.setEmail("test@solxyz.co.jp");
-        userAccountDto.setIsAdmin(true);
-        userAccountDto.setUpdatedAt(TEST_TIME);
+        UserAccount userAccount = new UserAccount();
+        userAccount.setUserId(TEST_UUID);
+        userAccount.setUsername("testUsername");
+        userAccount.setEmail("test@solxyz.co.jp");
+        userAccount.setIsAdmin(true);
+        userAccount.setUpdatedAt(TEST_TIME);
 
-        UserManagementForm userManagementFormWithPassword = new UserManagementForm();
+        AccountProfile userManagementFormWithPassword = new AccountProfile();
         userManagementFormWithPassword.setUserId(TEST_UUID);
         userManagementFormWithPassword.setIsAdmin(true);
         userManagementFormWithPassword.setEmail("test@solxyz.co.jp");
         userManagementFormWithPassword.setUserName("testUsername");
         userManagementFormWithPassword.setPassword("testPassword");
 
-        when(userServicesBizlogic.findByIdWithoutPassword(userManagementFormWithPassword.getUserId())).thenReturn(userAccountDto);
-        doThrow(OptimisticLockingFailureException.class).when(userServicesBizlogic).updateUserWithPassword(any(UserAccount.class), any(Instant.class));
+        when(userAccountManager.findByIdWithoutPassword(userManagementFormWithPassword.getUserId())).thenReturn(userAccount);
+        doThrow(OptimisticLockingFailureException.class).when(userAccountManager)
+                .updateUserWithPassword(any(UserAccount.class), any(Instant.class));
 
         try {
             service.updateUser(userManagementFormWithPassword);
             fail();
         } catch (OptimisticLockingFailureException e) {
-            verify(userServicesBizlogic, times(1)).findByIdWithoutPassword(userManagementFormWithPassword.getUserId());
-            verify(userServicesBizlogic, times(1)).updateUserWithPassword(any(UserAccount.class), any(Instant.class));
+            verify(userAccountManager, times(1)).findByIdWithoutPassword(userManagementFormWithPassword.getUserId());
+            verify(userAccountManager, times(1)).updateUserWithPassword(any(UserAccount.class), any(Instant.class));
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -401,22 +401,22 @@ class UserManagementServiceTest {
         userAccountWithoutPassword.setPassword("");
         userAccountWithoutPassword.setUpdatedAt(TEST_TIME);
 
-        UserAccountDto userAccountDto = new UserAccountDto();
-        userAccountDto.setUserId(TEST_UUID);
-        userAccountDto.setUsername("testUsername");
-        userAccountDto.setEmail("test@solxyz.co.jp");
-        userAccountDto.setIsAdmin(true);
-        userAccountDto.setUpdatedAt(TEST_TIME);
+        UserAccount userAccount = new UserAccount();
+        userAccount.setUserId(TEST_UUID);
+        userAccount.setUsername("testUsername");
+        userAccount.setEmail("test@solxyz.co.jp");
+        userAccount.setIsAdmin(true);
+        userAccount.setUpdatedAt(TEST_TIME);
 
-        UserManagementForm userManagementFormWithoutPassword = new UserManagementForm();
+        AccountProfile userManagementFormWithoutPassword = new AccountProfile();
         userManagementFormWithoutPassword.setUserId(TEST_UUID);
         userManagementFormWithoutPassword.setIsAdmin(true);
         userManagementFormWithoutPassword.setEmail("test@solxyz.co.jp");
         userManagementFormWithoutPassword.setUserName("testUsername");
         userManagementFormWithoutPassword.setPassword("");
 
-        when(userServicesBizlogic.findByIdWithoutPassword(userManagementFormWithoutPassword.getUserId())).thenReturn(userAccountDto);
-        doNothing().when(userServicesBizlogic).updateUserWithoutPassword(userAccountWithoutPassword, TEST_TIME);
+        when(userAccountManager.findByIdWithoutPassword(userManagementFormWithoutPassword.getUserId())).thenReturn(userAccount);
+        doNothing().when(userAccountManager).updateUserWithoutPassword(userAccountWithoutPassword, TEST_TIME);
 
         try {
             service.updateUser(userManagementFormWithoutPassword);
@@ -425,35 +425,35 @@ class UserManagementServiceTest {
             fail();
         }
 
-        verify(userServicesBizlogic, times(1)).updateUserWithoutPassword(expectedUserAccountWithoutPassword, TEST_TIME);
+        verify(userAccountManager, times(1)).updateUserWithoutPassword(expectedUserAccountWithoutPassword, TEST_TIME);
     }
 
     @Test
     @DisplayName("パスワードのないユーザの更新に失敗した場合、JPASystemExceptionがスローされる")
     void shouldThrowJpaSystemExceptionIfUpdateUserWithoutPasswordFails() {
-        UserAccountDto userAccountDto = new UserAccountDto();
-        userAccountDto.setUserId(TEST_UUID);
-        userAccountDto.setUsername("testUsername");
-        userAccountDto.setEmail("test@solxyz.co.jp");
-        userAccountDto.setIsAdmin(true);
-        userAccountDto.setUpdatedAt(TEST_TIME);
+        UserAccount userAccount = new UserAccount();
+        userAccount.setUserId(TEST_UUID);
+        userAccount.setUsername("testUsername");
+        userAccount.setEmail("test@solxyz.co.jp");
+        userAccount.setIsAdmin(true);
+        userAccount.setUpdatedAt(TEST_TIME);
 
-        UserManagementForm userManagementFormWithoutPassword = new UserManagementForm();
+        AccountProfile userManagementFormWithoutPassword = new AccountProfile();
         userManagementFormWithoutPassword.setUserId(TEST_UUID);
         userManagementFormWithoutPassword.setIsAdmin(true);
         userManagementFormWithoutPassword.setEmail("test@solxyz.co.jp");
         userManagementFormWithoutPassword.setUserName("testUsername");
         userManagementFormWithoutPassword.setPassword("");
 
-        when(userServicesBizlogic.findByIdWithoutPassword(userManagementFormWithoutPassword.getUserId())).thenReturn(userAccountDto);
-        doThrow(JpaSystemException.class).when(userServicesBizlogic).updateUserWithoutPassword(any(UserAccount.class), any(Instant.class));
+        when(userAccountManager.findByIdWithoutPassword(userManagementFormWithoutPassword.getUserId())).thenReturn(userAccount);
+        doThrow(JpaSystemException.class).when(userAccountManager).updateUserWithoutPassword(any(UserAccount.class), any(Instant.class));
 
         try {
             service.updateUser(userManagementFormWithoutPassword);
             fail();
         } catch (JpaSystemException e) {
-            verify(userServicesBizlogic, times(1)).findByIdWithoutPassword(userManagementFormWithoutPassword.getUserId());
-            verify(userServicesBizlogic, times(1)).updateUserWithoutPassword(any(UserAccount.class), any(Instant.class));
+            verify(userAccountManager, times(1)).findByIdWithoutPassword(userManagementFormWithoutPassword.getUserId());
+            verify(userAccountManager, times(1)).updateUserWithoutPassword(any(UserAccount.class), any(Instant.class));
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -463,29 +463,30 @@ class UserManagementServiceTest {
     @Test
     @DisplayName("パスワードのないユーザの更新に失敗した場合、DataAccessExceptionのサブクラスがスローされる")
     void shouldThrowDataAccessExceptionIfUpdateUserWithoutPasswordFails() {
-        UserAccountDto userAccountDto = new UserAccountDto();
-        userAccountDto.setUserId(TEST_UUID);
-        userAccountDto.setUsername("testUsername");
-        userAccountDto.setEmail("test@solxyz.co.jp");
-        userAccountDto.setIsAdmin(true);
-        userAccountDto.setUpdatedAt(TEST_TIME);
+        UserAccount userAccount = new UserAccount();
+        userAccount.setUserId(TEST_UUID);
+        userAccount.setUsername("testUsername");
+        userAccount.setEmail("test@solxyz.co.jp");
+        userAccount.setIsAdmin(true);
+        userAccount.setUpdatedAt(TEST_TIME);
 
-        UserManagementForm userManagementFormWithoutPassword = new UserManagementForm();
+        AccountProfile userManagementFormWithoutPassword = new AccountProfile();
         userManagementFormWithoutPassword.setUserId(TEST_UUID);
         userManagementFormWithoutPassword.setIsAdmin(true);
         userManagementFormWithoutPassword.setEmail("test@solxyz.co.jp");
         userManagementFormWithoutPassword.setUserName("testUsername");
         userManagementFormWithoutPassword.setPassword("");
 
-        when(userServicesBizlogic.findByIdWithoutPassword(userManagementFormWithoutPassword.getUserId())).thenReturn(userAccountDto);
-        doThrow(DataIntegrityViolationException.class).when(userServicesBizlogic).updateUserWithoutPassword(any(UserAccount.class), any(Instant.class));
+        when(userAccountManager.findByIdWithoutPassword(userManagementFormWithoutPassword.getUserId())).thenReturn(userAccount);
+        doThrow(DataIntegrityViolationException.class).when(userAccountManager)
+                .updateUserWithoutPassword(any(UserAccount.class), any(Instant.class));
 
         try {
             service.updateUser(userManagementFormWithoutPassword);
             fail();
         } catch (DataAccessException e) {
-            verify(userServicesBizlogic, times(1)).findByIdWithoutPassword(userManagementFormWithoutPassword.getUserId());
-            verify(userServicesBizlogic, times(1)).updateUserWithoutPassword(any(UserAccount.class), any(Instant.class));
+            verify(userAccountManager, times(1)).findByIdWithoutPassword(userManagementFormWithoutPassword.getUserId());
+            verify(userAccountManager, times(1)).updateUserWithoutPassword(any(UserAccount.class), any(Instant.class));
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -495,29 +496,30 @@ class UserManagementServiceTest {
     @Test
     @DisplayName("パスワードのないユーザの更新に失敗した場合、OptimisticLockingFailureExceptionがスローされる")
     void shouldThrowOptimisticLockingFailureExceptionIfUpdateUserWithoutPasswordFails() {
-        UserAccountDto userAccountDto = new UserAccountDto();
-        userAccountDto.setUserId(TEST_UUID);
-        userAccountDto.setUsername("testUsername");
-        userAccountDto.setEmail("test@solxyz.co.jp");
-        userAccountDto.setIsAdmin(true);
-        userAccountDto.setUpdatedAt(TEST_TIME);
+        UserAccount userAccount = new UserAccount();
+        userAccount.setUserId(TEST_UUID);
+        userAccount.setUsername("testUsername");
+        userAccount.setEmail("test@solxyz.co.jp");
+        userAccount.setIsAdmin(true);
+        userAccount.setUpdatedAt(TEST_TIME);
 
-        UserManagementForm userManagementFormWithoutPassword = new UserManagementForm();
+        AccountProfile userManagementFormWithoutPassword = new AccountProfile();
         userManagementFormWithoutPassword.setUserId(TEST_UUID);
         userManagementFormWithoutPassword.setIsAdmin(true);
         userManagementFormWithoutPassword.setEmail("test@solxyz.co.jp");
         userManagementFormWithoutPassword.setUserName("testUsername");
         userManagementFormWithoutPassword.setPassword("");
 
-        when(userServicesBizlogic.findByIdWithoutPassword(userManagementFormWithoutPassword.getUserId())).thenReturn(userAccountDto);
-        doThrow(OptimisticLockingFailureException.class).when(userServicesBizlogic).updateUserWithoutPassword(any(UserAccount.class), any(Instant.class));
+        when(userAccountManager.findByIdWithoutPassword(userManagementFormWithoutPassword.getUserId())).thenReturn(userAccount);
+        doThrow(OptimisticLockingFailureException.class).when(userAccountManager)
+                .updateUserWithoutPassword(any(UserAccount.class), any(Instant.class));
 
         try {
             service.updateUser(userManagementFormWithoutPassword);
             fail();
         } catch (OptimisticLockingFailureException e) {
-            verify(userServicesBizlogic, times(1)).findByIdWithoutPassword(userManagementFormWithoutPassword.getUserId());
-            verify(userServicesBizlogic, times(1)).updateUserWithoutPassword(any(UserAccount.class), any(Instant.class));
+            verify(userAccountManager, times(1)).findByIdWithoutPassword(userManagementFormWithoutPassword.getUserId());
+            verify(userAccountManager, times(1)).updateUserWithoutPassword(any(UserAccount.class), any(Instant.class));
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -527,21 +529,21 @@ class UserManagementServiceTest {
     @Test
     @DisplayName("更新対象のユーザ情報が存在しない場合、NoSuchElementExceptionをスローする")
     void shouldThrowNoSuchElementExceptionIfUserToUpdateDoesNotExist() {
-        UserManagementForm userManagementFormWithoutPassword = new UserManagementForm();
+        AccountProfile userManagementFormWithoutPassword = new AccountProfile();
         userManagementFormWithoutPassword.setUserId(TEST_UUID);
         userManagementFormWithoutPassword.setIsAdmin(true);
         userManagementFormWithoutPassword.setEmail("test@solxyz.co.jp");
         userManagementFormWithoutPassword.setUserName("testUsername");
         userManagementFormWithoutPassword.setPassword("");
 
-        doThrow(NoSuchElementException.class).when(userServicesBizlogic).findByIdWithoutPassword(userManagementFormWithoutPassword.getUserId());
+        doThrow(NoSuchElementException.class).when(userAccountManager).findByIdWithoutPassword(userManagementFormWithoutPassword.getUserId());
 
         try {
             service.updateUser(userManagementFormWithoutPassword);
             fail();
         } catch (NoSuchElementException e) {
-            verify(userServicesBizlogic, times(1)).findByIdWithoutPassword(userManagementFormWithoutPassword.getUserId());
-            verify(userServicesBizlogic, never()).updateUserWithPassword(any(), any());
+            verify(userAccountManager, times(1)).findByIdWithoutPassword(userManagementFormWithoutPassword.getUserId());
+            verify(userAccountManager, never()).updateUserWithPassword(any(), any());
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -558,19 +560,19 @@ class UserManagementServiceTest {
             fail();
         }
 
-        verify(userServicesBizlogic, times(1)).deleteUser(USER_ID);
+        verify(userAccountManager, times(1)).deleteUser(USER_ID);
     }
 
     @Test
     @DisplayName("削除対象が存在しない場合、NoSuchElementExceptionをスローする")
     void shouldThrowNoSuchElementExceptionIfUserToDeleteDoesNotExist() {
-        doThrow(NoSuchElementException.class).when(userServicesBizlogic).deleteUser(USER_ID);
+        doThrow(NoSuchElementException.class).when(userAccountManager).deleteUser(USER_ID);
 
         try {
             service.deleteUser(USER_ID);
             fail();
         } catch (NoSuchElementException e) {
-            verify(userServicesBizlogic, times(1)).deleteUser(USER_ID);
+            verify(userAccountManager, times(1)).deleteUser(USER_ID);
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -580,13 +582,13 @@ class UserManagementServiceTest {
     @Test
     @DisplayName("削除対象のユーザ情報に未返却の書籍がある場合、IllegalStateExceptionをスローする")
     void shouldThrowIllegalStateExceptionIfUserToDeleteHasUnreturnedBooks() {
-        doThrow(IllegalStateException.class).when(userServicesBizlogic).deleteUser(USER_ID);
+        doThrow(IllegalStateException.class).when(userAccountManager).deleteUser(USER_ID);
 
         try {
             service.deleteUser(USER_ID);
             fail();
         } catch (IllegalStateException e) {
-            verify(userServicesBizlogic, times(1)).deleteUser(USER_ID);
+            verify(userAccountManager, times(1)).deleteUser(USER_ID);
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -596,13 +598,13 @@ class UserManagementServiceTest {
     @Test
     @DisplayName("ユーザー情報の削除に失敗した場合、DataAccessExceptionのサブクラスをスローする")
     void shouldThrowDataAccessExceptionIfDeleteUserFails() {
-        doThrow(DataIntegrityViolationException.class).when(userServicesBizlogic).deleteUser(USER_ID);
+        doThrow(DataIntegrityViolationException.class).when(userAccountManager).deleteUser(USER_ID);
 
         try {
             service.deleteUser(USER_ID);
             fail();
         } catch (DataAccessException e) {
-            verify(userServicesBizlogic, times(1)).deleteUser(USER_ID);
+            verify(userAccountManager, times(1)).deleteUser(USER_ID);
         } catch (Exception e) {
             e.printStackTrace();
             fail();

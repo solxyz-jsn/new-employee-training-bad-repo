@@ -30,7 +30,7 @@ class UserDetailsTest {
     void shouldReturnCorrectAuthoritiesWhenUserIsAdmin() {
         Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
 
-        assertThat(authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")));
+        assertThat(authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))).isTrue();
     }
 
     @Test
@@ -41,7 +41,7 @@ class UserDetailsTest {
 
         Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
 
-        assertThat(authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_USER")));
+        assertThat(authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_USER"))).isTrue();
     }
 
     @Test

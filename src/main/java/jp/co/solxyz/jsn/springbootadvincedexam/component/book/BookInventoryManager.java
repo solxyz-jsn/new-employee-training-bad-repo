@@ -65,9 +65,9 @@ public class BookInventoryManager {
      * @throws IllegalArgumentException inputtedStockがavailableStockを下回る場合
      */
     public void compareInputStockLowerThanCurrent(int inputtedStock, int availableStock) throws IllegalArgumentException {
-        if (inputtedStock <= availableStock) {
-            log.warn("在庫数は現在個数以下の数値にはできません。");
-            throw new IllegalArgumentException("在庫数は現在の在庫数以下の数値にはできません。　現在の在庫数: " + availableStock);
+        if (inputtedStock < availableStock) {
+            log.warn("在庫数は現在個数未満の数値にはできません。");
+            throw new IllegalArgumentException("在庫数は現在の在庫数未満の数値にはできません。　現在の在庫数: " + availableStock);
         }
     }
 }

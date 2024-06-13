@@ -1,11 +1,10 @@
 package jp.co.solxyz.jsn.springbootadvincedexam.component.user;
 
-import jp.co.solxyz.jsn.springbootadvincedexam.app.user.dto.UserAccountDto;
-import jp.co.solxyz.jsn.springbootadvincedexam.app.user.util.PasswordUtility;
-import jp.co.solxyz.jsn.springbootadvincedexam.infra.entity.BookCheckoutHistory;
-import jp.co.solxyz.jsn.springbootadvincedexam.infra.entity.UserAccount;
-import jp.co.solxyz.jsn.springbootadvincedexam.infra.reposiroty.BookCheckoutHistoryRepository;
-import jp.co.solxyz.jsn.springbootadvincedexam.infra.reposiroty.UserAccountRepository;
+import jp.co.solxyz.jsn.springbootadvincedexam.infra.entity.book.BookCheckoutHistory;
+import jp.co.solxyz.jsn.springbootadvincedexam.infra.entity.user.UserAccount;
+import jp.co.solxyz.jsn.springbootadvincedexam.infra.reposiroty.book.BookCheckoutHistoryRepository;
+import jp.co.solxyz.jsn.springbootadvincedexam.infra.reposiroty.user.UserAccountRepository;
+import jp.co.solxyz.jsn.springbootadvincedexam.util.PasswordUtility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +19,7 @@ import org.springframework.orm.jpa.JpaSystemException;
 import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 class UserManagerTest {
 
     @InjectMocks
-    UserManager userManager;
+    UserAccountManager userAccountManager;
 
     @Mock
     UserAccountRepository userAccountRepository;
@@ -57,9 +57,9 @@ class UserManagerTest {
     @Test
     @DisplayName("ユーザ情報が存在しない場合、空のリストが返る")
     void shouldGetAllUsersWithoutPasswordWithNoUser() {
-        when(userAccountRepository.findAllWithoutPassword()).thenReturn(List.of());
+        when(userAccountRepository.findAll()).thenReturn(List.of());
 
-        List<UserAccountDto> result = userManager.getAllUsersWithoutPassword();
+        List<UserAccount> result = userAccountManager.getAllUsersWithoutPassword();
 
         assertThat(result).isEmpty();
     }
@@ -67,21 +67,21 @@ class UserManagerTest {
     @Test
     @DisplayName("ユーザ情報が１件ある場合、１件のユーザ情報が含まれたリストが返る")
     void shouldGetAllUsersWithoutPasswordWithOneUser() {
-        UserAccountDto expected = new UserAccountDto();
+        UserAccount expected = new UserAccount();
         expected.setUserId("testUserId");
         expected.setUsername("testUsername");
         expected.setEmail("test@solxyz.co.jp");
         expected.setIsAdmin(true);
 
-        UserAccountDto userAccountDto = new UserAccountDto();
+        UserAccount userAccountDto = new UserAccount();
         userAccountDto.setUserId("testUserId");
         userAccountDto.setUsername("testUsername");
         userAccountDto.setEmail("test@solxyz.co.jp");
         userAccountDto.setIsAdmin(true);
 
-        when(userAccountRepository.findAllWithoutPassword()).thenReturn(List.of(userAccountDto));
+        when(userAccountRepository.findAll()).thenReturn(List.of(userAccountDto));
 
-        List<UserAccountDto> result = userManager.getAllUsersWithoutPassword();
+        List<UserAccount> result = userAccountManager.getAllUsersWithoutPassword();
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).isEqualTo(expected);
@@ -90,31 +90,31 @@ class UserManagerTest {
     @Test
     @DisplayName("ユーザ情報が複数ある場合、複数のユーザ情報が含まれたリストが返る")
     void shouldGetAllUsersWithoutPasswordSuccessfully() {
-        UserAccountDto expected1 = new UserAccountDto();
+        UserAccount expected1 = new UserAccount();
         expected1.setUserId("testUserId1");
         expected1.setUsername("testUsername1");
         expected1.setEmail("test@solxyz.co.jp");
         expected1.setIsAdmin(true);
-        UserAccountDto expected2 = new UserAccountDto();
+        UserAccount expected2 = new UserAccount();
         expected2.setUserId("testUserId2");
         expected2.setUsername("testUsername2");
         expected2.setEmail("test2@solxyz.co.jp");
         expected2.setIsAdmin(false);
 
-        UserAccountDto userAccountDto1 = new UserAccountDto();
+        UserAccount userAccountDto1 = new UserAccount();
         userAccountDto1.setUserId("testUserId1");
         userAccountDto1.setUsername("testUsername1");
         userAccountDto1.setEmail("test@solxyz.co.jp");
         userAccountDto1.setIsAdmin(true);
-        UserAccountDto userAccountDto2 = new UserAccountDto();
+        UserAccount userAccountDto2 = new UserAccount();
         userAccountDto2.setUserId("testUserId2");
         userAccountDto2.setUsername("testUsername2");
         userAccountDto2.setEmail("test2@solxyz.co.jp");
         userAccountDto2.setIsAdmin(false);
 
-        when(userAccountRepository.findAllWithoutPassword()).thenReturn(List.of(userAccountDto1, userAccountDto2));
+        when(userAccountRepository.findAll()).thenReturn(List.of(userAccountDto1, userAccountDto2));
 
-        List<UserAccountDto> result = userManager.getAllUsersWithoutPassword();
+        List<UserAccount> result = userAccountManager.getAllUsersWithoutPassword();
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0)).isEqualTo(expected1);
@@ -126,31 +126,31 @@ class UserManagerTest {
     void shouldNotFindByIdWithoutPassword() {
         String nonexistentUserId = "nonexistentUserId";
 
-        when(userAccountRepository.findByIdWithoutPassword(nonexistentUserId)).thenReturn(null);
+        when(userAccountRepository.findById(nonexistentUserId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userManager.findByIdWithoutPassword(nonexistentUserId))
+        assertThatThrownBy(() -> userAccountManager.findByIdWithoutPassword(nonexistentUserId))
                 .isInstanceOf(NoSuchElementException.class);
-        verify(userAccountRepository, times(1)).findByIdWithoutPassword(nonexistentUserId);
+        verify(userAccountRepository, times(1)).findById(nonexistentUserId);
     }
 
     @Test
     @DisplayName("ユーザIDによりパスワードを除いたユーザ情報を1件取得する")
     void shouldFindByIdWithoutPasswordSuccessfully() {
-        UserAccountDto expected = new UserAccountDto();
+        UserAccount expected = new UserAccount();
         expected.setUserId("testUserId");
         expected.setUsername("testUsername");
         expected.setEmail("test@solxyz.co.jp");
         expected.setIsAdmin(true);
 
-        UserAccountDto userAccountDto = new UserAccountDto();
+        UserAccount userAccountDto = new UserAccount();
         userAccountDto.setUserId("testUserId");
         userAccountDto.setUsername("testUsername");
         userAccountDto.setEmail("test@solxyz.co.jp");
         userAccountDto.setIsAdmin(true);
 
-        when(userAccountRepository.findByIdWithoutPassword(userAccountDto.getUserId())).thenReturn(userAccountDto);
+        when(userAccountRepository.findById(userAccountDto.getUserId())).thenReturn(Optional.of(userAccountDto));
 
-        UserAccountDto result = userManager.findByIdWithoutPassword(userAccountDto.getUserId());
+        UserAccount result = userAccountManager.findByIdWithoutPassword(userAccountDto.getUserId());
 
         assertThat(result).isEqualTo(expected);
     }
@@ -160,9 +160,9 @@ class UserManagerTest {
     void shouldThrowNoSuchElementExceptionWhenFindByIdWithoutPasswordWithNonexistentUserId() {
         String nonexistentUserId = "nonexistentUserId";
 
-        when(userAccountRepository.findByIdWithoutPassword(nonexistentUserId)).thenReturn(null);
+        when(userAccountRepository.findById(nonexistentUserId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userManager.findByIdWithoutPassword(nonexistentUserId))
+        assertThatThrownBy(() -> userAccountManager.findByIdWithoutPassword(nonexistentUserId))
                 .isInstanceOf(NoSuchElementException.class);
     }
 
@@ -197,7 +197,7 @@ class UserManagerTest {
         when(userAccountRepository.save(hashedPasswordUserAccount)).thenReturn(new UserAccount());
 
         try {
-            userManager.addUser(userAccount);
+            userAccountManager.addUser(userAccount);
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -237,7 +237,7 @@ class UserManagerTest {
         when(passwordUtility.hashPassword(userAccount.getPassword())).thenReturn(hashedPassword);
         when(userAccountRepository.save(hashedPasswordUserAccount)).thenThrow(JpaSystemException.class);
 
-        assertThatThrownBy(() -> userManager.addUser(userAccount))
+        assertThatThrownBy(() -> userAccountManager.addUser(userAccount))
                 .isInstanceOf(JpaSystemException.class);
         verify(passwordUtility, times(1)).hashPassword(rowPassword);
         verify(userAccountRepository, times(1)).save(expected);
@@ -273,7 +273,7 @@ class UserManagerTest {
         when(passwordUtility.hashPassword(userAccount.getPassword())).thenReturn(hashedPassword);
         when(userAccountRepository.save(hashedPasswordUserAccount)).thenThrow(DataAccessResourceFailureException.class);
 
-        assertThatThrownBy(() -> userManager.addUser(userAccount))
+        assertThatThrownBy(() -> userAccountManager.addUser(userAccount))
                 .isInstanceOf(DataAccessException.class);
         verify(passwordUtility, times(1)).hashPassword(rowPassword);
         verify(userAccountRepository, times(1)).save(expected);
@@ -306,7 +306,7 @@ class UserManagerTest {
                 EXPECTED_TEST_TIME)).thenReturn(1);
 
         try {
-            userManager.updateUserWithPassword(userAccount, Instant.parse("2020-01-01T00:00:00Z"));
+            userAccountManager.updateUserWithPassword(userAccount, Instant.parse("2020-01-01T00:00:00Z"));
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -335,7 +335,7 @@ class UserManagerTest {
                 userAccount.getUsername(), hashedPassword, TEST_TIME, TEST_TIME))
                 .thenThrow(JpaSystemException.class);
 
-        assertThatThrownBy(() -> userManager.updateUserWithPassword(userAccount, TEST_TIME))
+        assertThatThrownBy(() -> userAccountManager.updateUserWithPassword(userAccount, TEST_TIME))
                 .isInstanceOf(JpaSystemException.class);
 
         verify(userAccountRepository, times(1)).updateWithPassword(userAccount.getUserId(), userAccount.getIsAdmin(),
@@ -360,7 +360,7 @@ class UserManagerTest {
                 userAccount.getUsername(), hashedPassword, TEST_TIME, TEST_TIME))
                 .thenThrow(DataAccessResourceFailureException.class);
 
-        assertThatThrownBy(() -> userManager.updateUserWithPassword(userAccount, TEST_TIME))
+        assertThatThrownBy(() -> userAccountManager.updateUserWithPassword(userAccount, TEST_TIME))
                 .isInstanceOf(DataAccessException.class);
         verify(userAccountRepository, times(1)).updateWithPassword(userAccount.getUserId(), userAccount.getIsAdmin(),
                 userAccount.getEmail(), userAccount.getUsername(), hashedPassword, TEST_TIME, TEST_TIME);
@@ -383,7 +383,7 @@ class UserManagerTest {
         when(userAccountRepository.updateWithPassword(userAccount.getUserId(), userAccount.getIsAdmin(), userAccount.getEmail(),
                 userAccount.getUsername(), hashedPassword, TEST_TIME, TEST_TIME)).thenReturn(0);
 
-        assertThatThrownBy(() -> userManager.updateUserWithPassword(userAccount, TEST_TIME))
+        assertThatThrownBy(() -> userAccountManager.updateUserWithPassword(userAccount, TEST_TIME))
                 .isInstanceOf(OptimisticLockingFailureException.class);
         verify(userAccountRepository, times(1)).updateWithPassword(userAccount.getUserId(), userAccount.getIsAdmin(),
                 userAccount.getEmail(), userAccount.getUsername(), hashedPassword, TEST_TIME, TEST_TIME);
@@ -410,7 +410,7 @@ class UserManagerTest {
                 userAccount.getUsername(), TEST_TIME, TEST_TIME)).thenReturn(1);
 
         try {
-            userManager.updateUserWithoutPassword(userAccount, TEST_TIME);
+            userAccountManager.updateUserWithoutPassword(userAccount, TEST_TIME);
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -441,7 +441,7 @@ class UserManagerTest {
                 userAccount.getUsername(), TEST_TIME, OPTIMISTIC_LOCK_UPDATED_AT))
                 .thenThrow(JpaSystemException.class);
 
-        assertThatThrownBy(() -> userManager.updateUserWithoutPassword(userAccount, OPTIMISTIC_LOCK_UPDATED_AT))
+        assertThatThrownBy(() -> userAccountManager.updateUserWithoutPassword(userAccount, OPTIMISTIC_LOCK_UPDATED_AT))
                 .isInstanceOf(JpaSystemException.class);
         verify(userAccountRepository, times(1)).updateWithoutPassword(expected.getUserId(), expected.getIsAdmin(),
                 expected.getEmail(), expected.getUsername(), EXPECTED_TEST_TIME, OPTIMISTIC_LOCK_UPDATED_AT);
@@ -468,7 +468,7 @@ class UserManagerTest {
                 userAccount.getUsername(), TEST_TIME, OPTIMISTIC_LOCK_UPDATED_AT))
                 .thenThrow(DataAccessResourceFailureException.class);
 
-        assertThatThrownBy(() -> userManager.updateUserWithoutPassword(userAccount, OPTIMISTIC_LOCK_UPDATED_AT))
+        assertThatThrownBy(() -> userAccountManager.updateUserWithoutPassword(userAccount, OPTIMISTIC_LOCK_UPDATED_AT))
                 .isInstanceOf(DataAccessException.class);
         verify(userAccountRepository, times(1)).updateWithoutPassword(expected.getUserId(), expected.getIsAdmin(),
                 expected.getEmail(), expected.getUsername(), EXPECTED_TEST_TIME, OPTIMISTIC_LOCK_UPDATED_AT);
@@ -495,7 +495,7 @@ class UserManagerTest {
                 userAccount.getUsername(), TEST_TIME, OPTIMISTIC_LOCK_UPDATED_AT))
                 .thenReturn(0);
 
-        assertThatThrownBy(() -> userManager.updateUserWithoutPassword(userAccount, OPTIMISTIC_LOCK_UPDATED_AT))
+        assertThatThrownBy(() -> userAccountManager.updateUserWithoutPassword(userAccount, OPTIMISTIC_LOCK_UPDATED_AT))
                 .isInstanceOf(OptimisticLockingFailureException.class);
         verify(userAccountRepository, times(1)).updateWithoutPassword(expected.getUserId(), expected.getIsAdmin(),
                 expected.getEmail(), expected.getUsername(), EXPECTED_TEST_TIME, OPTIMISTIC_LOCK_UPDATED_AT);
@@ -507,17 +507,17 @@ class UserManagerTest {
         String userId = "testUserId";
         String expectedUserId = "testUserId";
 
-        when(userAccountRepository.findByIdWithoutPassword(userId)).thenReturn(new UserAccountDto());
+        when(userAccountRepository.findById(userId)).thenReturn(Optional.of(new UserAccount()));
         when(bookCheckoutHistoryRepository.findUnreturnedBooksByUserId(userId)).thenReturn(List.of());
 
         try {
-            userManager.deleteUser(userId);
+            userAccountManager.deleteUser(userId);
         } catch (Exception e) {
             e.printStackTrace();
             fail();
         }
 
-        verify(userAccountRepository, times(1)).findByIdWithoutPassword(userId);
+        verify(userAccountRepository, times(1)).findById(userId);
         verify(bookCheckoutHistoryRepository, times(1)).findUnreturnedBooksByUserId(userId);
         verify(userAccountRepository, times(1)).deleteById(expectedUserId);
     }
@@ -527,14 +527,14 @@ class UserManagerTest {
     void shouldThrowNoSuchElementExceptionWhenDeleteUserWithNonexistentUserId() {
         String userId = "testUserId";
 
-        UserAccountDto userAccountDto = new UserAccountDto();
+        UserAccount userAccountDto = new UserAccount();
         userAccountDto.setUserId("testUserId");
 
-        when(userAccountRepository.findByIdWithoutPassword(userId)).thenReturn(null);
+        when(userAccountRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userManager.deleteUser(userId))
+        assertThatThrownBy(() -> userAccountManager.deleteUser(userId))
                 .isInstanceOf(NoSuchElementException.class);
-        verify(userAccountRepository, times(1)).findByIdWithoutPassword(userId);
+        verify(userAccountRepository, times(1)).findById(userId);
         verify(bookCheckoutHistoryRepository, times(0)).findUnreturnedBooksByUserId(userId);
         verify(userAccountRepository, times(0)).deleteById(userId);
     }
@@ -544,12 +544,12 @@ class UserManagerTest {
     void shouldNotDeleteUserWhenUnreturnedBooksExist() {
         String userId = "testUserId";
 
-        when(userAccountRepository.findByIdWithoutPassword(userId)).thenReturn(new UserAccountDto());
+        when(userAccountRepository.findById(userId)).thenReturn(Optional.of(new UserAccount()));
         when(bookCheckoutHistoryRepository.findUnreturnedBooksByUserId(userId)).thenReturn(List.of(new BookCheckoutHistory()));
 
-        assertThatThrownBy(() -> userManager.deleteUser(userId))
+        assertThatThrownBy(() -> userAccountManager.deleteUser(userId))
                 .isInstanceOf(IllegalStateException.class);
-        verify(userAccountRepository, times(1)).findByIdWithoutPassword(userId);
+        verify(userAccountRepository, times(1)).findById(userId);
         verify(bookCheckoutHistoryRepository, times(1)).findUnreturnedBooksByUserId(userId);
         verify(userAccountRepository, times(0)).deleteById(userId);
     }
@@ -559,14 +559,14 @@ class UserManagerTest {
     void shouldThrowDataAccessExceptionWhenDeleteUserWithFailedDbConnection() {
         String userId = "testUserId";
 
-        when(userAccountRepository.findByIdWithoutPassword(userId)).thenReturn(new UserAccountDto());
+        when(userAccountRepository.findById(userId)).thenReturn(Optional.of(new UserAccount()));
         when(bookCheckoutHistoryRepository.findUnreturnedBooksByUserId(userId)).thenReturn(List.of());
 
         doThrow(DataAccessResourceFailureException.class).when(userAccountRepository).deleteById(userId);
 
-        assertThatThrownBy(() -> userManager.deleteUser(userId))
+        assertThatThrownBy(() -> userAccountManager.deleteUser(userId))
                 .isInstanceOf(DataAccessException.class);
-        verify(userAccountRepository, times(1)).findByIdWithoutPassword(userId);
+        verify(userAccountRepository, times(1)).findById(userId);
         verify(bookCheckoutHistoryRepository, times(1)).findUnreturnedBooksByUserId(userId);
         verify(userAccountRepository, times(1)).deleteById(userId);
     }

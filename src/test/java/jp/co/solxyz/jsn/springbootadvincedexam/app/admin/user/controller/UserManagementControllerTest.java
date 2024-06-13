@@ -40,7 +40,7 @@ class UserManagementControllerTest {
 
         ModelAndView mav = controller.index();
 
-        assertThat(mav.getViewName()).isEqualTo("admin/usermanagement");
+        assertThat(mav.getViewName()).isEqualTo("admin/user-management");
         assertThat(mav.getModel().get("users")).isEqualTo(users);
     }
 
@@ -51,7 +51,7 @@ class UserManagementControllerTest {
 
         ModelAndView mav = controller.index();
 
-        assertThat(mav.getViewName()).isEqualTo("admin/usermanagement");
+        assertThat(mav.getViewName()).isEqualTo("admin/user-management");
         assertThat(((List) mav.getModel().get("users"))).isEqualTo(Collections.emptyList());
     }
 }
