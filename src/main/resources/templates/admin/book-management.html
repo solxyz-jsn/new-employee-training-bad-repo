@@ -224,13 +224,8 @@ function clearInputs() {
             <!-- Modal header -->
             <div class="modal-header">
                 <h3 id="modal-book-title" class="modal-title">書籍追加</h3>
-                <button type="button" class="modal-close" data-modal-hide="default-modal">
-                    <svg class="modal-close-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                         viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                    </svg>
-                    <span class="sr-only">Close modal</span>
+                <button type="button" class="modal-close" >
+                    <span class="material-symbols-outlined modal-close-icon sr-only" data-modal-hide="default-modal">close</span>
                 </button>
             </div>
             <!-- Modal body -->
@@ -266,7 +261,7 @@ function clearInputs() {
 
 <div id="modal-overlay" class="modal-overlay"></div>
 
-<span class="material-symbols-outlined" data-modal-target="default-modal"
+<span class="material-symbols-outlined add_circle" data-modal-target="default-modal"
       data-modal-toggle="default-modal">
 add_circle
 </span>

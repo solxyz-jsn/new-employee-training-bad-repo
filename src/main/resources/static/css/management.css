@@ -105,7 +105,7 @@ input:focus, textarea:focus {
     display: none;
 }
 
-.material-symbols-outlined {
+.material-symbols-outlined.add_circle {
     position: fixed;
     right: 5vw;
     bottom: 5vh;
