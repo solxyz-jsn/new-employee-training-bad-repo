@@ -1,7 +1,6 @@
 package jp.co.solxyz.jsn.springbootadvincedexam.component.book;
 
 import jp.co.solxyz.jsn.springbootadvincedexam.infra.entity.book.Book;
-import jp.co.solxyz.jsn.springbootadvincedexam.infra.reposiroty.book.BookCheckoutHistoryRepository;
 import jp.co.solxyz.jsn.springbootadvincedexam.infra.reposiroty.book.BookRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -23,7 +22,7 @@ public class BookInventoryManager {
      * コンストラクタ
      * @param bookRepository 書籍リポジトリ
      */
-    public BookInventoryManager(BookRepository bookRepository, BookCheckoutHistoryRepository bookCheckoutHistoryRepository) {
+    public BookInventoryManager(BookRepository bookRepository) {
         this.bookRepository = bookRepository;
     }
 

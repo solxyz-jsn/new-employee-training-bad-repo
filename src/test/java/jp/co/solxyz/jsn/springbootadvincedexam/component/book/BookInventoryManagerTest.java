@@ -1,6 +1,7 @@
 package jp.co.solxyz.jsn.springbootadvincedexam.component.book;
 
 import jp.co.solxyz.jsn.springbootadvincedexam.infra.entity.book.Book;
+import jp.co.solxyz.jsn.springbootadvincedexam.infra.reposiroty.book.BookCheckoutHistoryRepository;
 import jp.co.solxyz.jsn.springbootadvincedexam.infra.reposiroty.book.BookRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,6 +28,9 @@ public class BookInventoryManagerTest {
 
     @Mock
     private BookRepository bookRepository;
+
+    @Mock
+    private BookCheckoutHistoryRepository bookCheckoutHistoryRepository;
 
     private final LocalDateTime TEST_TIME = LocalDateTime.of(2021, 1, 1, 0, 0, 0);
 
