@@ -1,7 +1,8 @@
 button {
     border: none;
     min-height: auto;
-    min-width: 32px;
+    width: auto;
+    max-width: 10vw;
     text-align: center;
     text-decoration: none;
     background-color: transparent;
@@ -20,6 +21,16 @@ button {
 
 .add-button:hover {
     background-color: #007BFF;
+    color: #FFFFFF;
+}
+
+.cancel-button {
+    color: #FFA500;
+    border: 2px solid #FFA500;
+}
+
+.cancel-button:hover {
+    background-color: #FFA500;
     color: #FFFFFF;
 }
 

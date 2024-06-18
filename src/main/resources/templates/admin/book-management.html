@@ -7,11 +7,16 @@
     <link th:href="@{/css/main.css}" rel="stylesheet">
     <link th:href="@{/css/management.css}" rel="stylesheet">
     <link th:href="@{/css/button.css}" rel="stylesheet">
+    <link th:href="@{/css/modal.css}" rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"/>
 
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 
     <script th:src="@{/js/fetcher.js}"></script>
+    <script th:src="@{/js/modal.js}"></script>
     <script th:inline="javascript">
 const ROOT_API_URL = "/api/admin/management/book";
 const csrfToken = document.querySelector('meta[name="_csrf"]').content;
@@ -92,77 +97,115 @@ function deleteBook(event) {
 }
 
     </script>
+    <script th:inline="javascript">
+function toggleDescription(event) {
+    const textarea = event.target.parentElement.parentElement.querySelector('textarea');
+    textarea.classList.toggle("hidden");
+
+    if (textarea.classList.contains("hidden")) {
+        event.target.textContent = "表示";
+    } else {
+        event.target.textContent = "非表示";
+    }
+}
+
+function clearInputs() {
+  const inputs = document.querySelectorAll(".modal-body input");
+  inputs.forEach((input) => {
+    input.value = "";
+  });
+
+  const textareas = document.querySelectorAll(".modal-body textarea");
+  textareas.forEach((textarea) => {
+    textarea.value = "";
+  });
+}
+
+    </script>
 </head>
 
 <body>
 <div id="foo" th:replace="~{common/nav-bar :: bar}"></div>
-<h2 class="section-title">書籍追加</h2>
 <div class="container">
-    <div class="book-form">
-        <label for="isbn">ISBN<span class="required">(必須:数字13桁)</span></label>
-        <input type="text" maxlength="13" id="isbn" placeholder="1234567890123">
 
-        <label for="title">書籍名<span class="required">(必須)</span></label>
-        <input type="text" id="title" placeholder="書籍名">
-
-        <label for="publisher">出版社<span class="required">(必須)</span></label>
-        <input type="text" id="publisher" placeholder="出版社">
-
-        <label for="author">著者名<span class="required">(必須)</span></label>
-        <input type="text" id="author" placeholder="著者名">
-
-        <label for="description">説明</label>
-        <textarea id="description" placeholder="説明"></textarea>
-
-        <label for="stock">在庫<span class="required">(必須)</span></label>
-        <input type="number" min="0" id="stock" placeholder="0">
-
-        <button class="add-button" onclick="addBook()">追加</button>
-    </div>
 </div>
 <h2 class="section-title">書籍一覧</h2>
 <div class="container-group">
     <div class="book-container">
         <div th:each="book : ${books}" class="book-item">
             <div class="book-field">
-                <label>ISBN</label>
+                <div class="field-header">
+                    <label>ISBN</label>
+                </div>
+                <div class="field-body">
                 <span class="isbn" th:text="${book.displayedIsbn}"
                       th:attr="data-isbn=${book.isbn}"></span>
+                </div>
             </div>
 
             <div class="book-field">
-                <label>書籍名</label>
-                <input class="title" type="text" th:value="${book.title}">
+                <div class="field-header">
+                    <label>書籍名</label>
+                </div>
+                <div class="field-body">
+                    <input class="title" type="text" th:value="${book.title}">
+                </div>
             </div>
 
             <div class="book-field">
-                <label>出版社</label>
-                <input class="publisher" type="text" th:value="${book.publisher}">
+                <div class="field-header">
+                    <label>出版社</label>
+                </div>
+                <div class="field-body">
+                    <input class="publisher" type="text" th:value="${book.publisher}">
+                </div>
             </div>
 
             <div class="book-field">
-                <label>著者名</label>
-                <input class="author" type="text" th:value="${book.author}">
+                <div class="field-header">
+                    <label>著者名</label>
+                </div>
+                <div class="field-body">
+                    <input class="author" type="text" th:value="${book.author}">
+                </div>
             </div>
 
             <div class="book-field">
-                <label>説明</label>
-                <textarea class="description" th:text="${book.description}"></textarea>
+                <div class="field-header">
+                    <label>説明</label>
+                    <button class="toggle" onclick="toggleDescription(event)">表示</button>
+                </div>
+                <div class="field-body" style="min-height: 10vh;">
+                    <textarea class="hidden description" th:text="${book.description}"></textarea>
+                </div>
             </div>
 
             <div class="book-field">
-                <label>在庫</label>
-                <input class="stock" type="number" th:value="${book.Stock}">
+                <div class="field-header">
+                    <label>在庫</label>
+                </div>
+                <div class="field-body">
+                    <input class="stock" type="number" th:value="${book.Stock}">
+                </div>
             </div>
 
             <div class="book-field">
-                <label>作成日</label>
-                <span class="createdAt" th:text="${book.createdAt}"></span>
+                <div class="field-header">
+                    <label>作成日</label>
+                </div>
+                <div class="field-body">
+                    <span class="createdAt"
+                          th:text="${#temporals.format(book.createdAt, 'yyyy年M月d日 H時m分s秒')}"></span>
+                </div>
             </div>
 
             <div class="book-field">
-                <label>更新日</label>
-                <span th:text="${book.updatedAt}"></span>
+                <div class="field-header">
+                    <label>更新日</label>
+                </div>
+                <div class="field-body">
+                    <span th:text="${#temporals.format(book.updatedAt, 'yyyy年M月d日 H時m分s秒')}"></span>
+                </div>
             </div>
 
             <div class="book-actions">
@@ -172,5 +215,61 @@ function deleteBook(event) {
         </div>
     </div>
 </div>
+
+<!-- Main modal -->
+<div id="default-modal" class="modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog" data-modal-hide="default-modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <!-- Modal header -->
+            <div class="modal-header">
+                <h3 id="modal-book-title" class="modal-title">書籍追加</h3>
+                <button type="button" class="modal-close" data-modal-hide="default-modal">
+                    <svg class="modal-close-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <div class="modal-body">
+                <div class="book-form">
+                    <label for="isbn">ISBN<span class="required">(必須:数字13桁)</span></label>
+                    <input type="text" maxlength="13" id="isbn" placeholder="1234567890123">
+
+                    <label for="title">書籍名<span class="required">(必須)</span></label>
+                    <input type="text" id="title" placeholder="書籍名">
+
+                    <label for="publisher">出版社<span class="required">(必須)</span></label>
+                    <input type="text" id="publisher" placeholder="出版社">
+
+                    <label for="author">著者名<span class="required">(必須)</span></label>
+                    <input type="text" id="author" placeholder="著者名">
+
+                    <label for="description">説明</label>
+                    <textarea id="description" placeholder="説明"></textarea>
+
+                    <label for="stock">在庫<span class="required">(必須)</span></label>
+                    <input type="number" min="0" id="stock" placeholder="0">
+                </div>
+            </div>
+            <!-- Modal footer -->
+            <div class="modal-footer">
+                <button class="cancel-button" onclick="clearInputs()">キャンセル</button>
+                <button class="add-button" onclick="addBook()">追加</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-overlay" class="modal-overlay"></div>
+
+<span class="material-symbols-outlined" data-modal-target="default-modal"
+      data-modal-toggle="default-modal">
+add_circle
+</span>
+
 </body>
 </html>

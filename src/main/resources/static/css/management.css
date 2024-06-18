@@ -7,7 +7,7 @@ input, textarea {
 }
 
 textarea {
-    height: 35vh;
+    height: 20vh;
 }
 
 input:focus, textarea:focus {
@@ -38,22 +38,19 @@ input:focus, textarea:focus {
 }
 
 .book-form {
-    width: 70%;
+    width: 100%;
     display: flex;
     flex-direction: column;
-    border: 1px solid #808080;
-    border-radius: 5px;
-    margin: 0 auto;
-    padding: 10px;
+    padding: 3%;
 }
 
 .book-item {
-    border: 1px solid #808080;
-    flex: 0 0 49%;
-    border: 1px solid #808080;
+    flex: 0 0 24%;
+    border: 0.5px solid #dfdfdf;
     border-radius: 5px;
     width: 100%;
     margin: 10px 5px;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1);
 }
 
 .book-field {
@@ -62,10 +59,55 @@ input:focus, textarea:focus {
     align-items: flex-start;
     padding: 5px;
     border-bottom: 1px solid #808080;
-    overflow: auto;
 }
 
-.book-field label {
+.field-header {
+     display: flex;
+     position: relative;
+     align-items: center;
+}
+
+.field-header label {
     font-size: 70%;
-    width: 20%;
+    width: auto;
+}
+
+.field-header label,
+.field-header .toggle {
+    display: inline-block;
+    position: sticky;
+    top: 0;
+    background: inherit;
+    z-index: 2;
+}
+
+.field-body{
+    display: flex;
+    position: relative;
+    align-items: center;
+    overflow: auto;
+    width: 100%;
+}
+
+.field-body .description {
+    position: absolute;
+    z-index: 1;
+    top:0;
+    left:0;
+}
+
+.book-actions {
+    display: flex;
+    justify-content: center;
+}
+
+.hidden{
+    display: none;
+}
+
+.material-symbols-outlined {
+    position: fixed;
+    right: 5vw;
+    bottom: 5vh;
+    transform: scale(2);
 }
