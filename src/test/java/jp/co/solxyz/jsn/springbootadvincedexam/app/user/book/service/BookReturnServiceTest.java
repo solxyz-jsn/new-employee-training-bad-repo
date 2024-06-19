@@ -8,7 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataAccessResourceFailureException;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -135,17 +136,17 @@ class BookReturnServiceTest {
     }
 
     @Test
-    @DisplayName("書籍の返却でDataIntegrityViolationExceptionがスローされる")
-    void shouldThrowDataIntegrityViolationExceptionWhenReturnBook() {
+    @DisplayName("書籍の返却でDataAccessExceptionのサブクラスがスローされる")
+    void shouldThrowDataAccessExceptionWhenReturnBook() {
         String userId = "user1";
         String expectedUserId = "user1";
 
         String isbn = "1234567890123";
         String expectedIsbn = "1234567890123";
 
-        doThrow(DataIntegrityViolationException.class).when(bookLendingManager).returnBook(userId, isbn);
+        doThrow(DataAccessResourceFailureException.class).when(bookLendingManager).returnBook(userId, isbn);
 
-        assertThrows(DataIntegrityViolationException.class, () -> bookLendingService.henkyaku(expectedUserId, expectedIsbn));
+        assertThrows(DataAccessException.class, () -> bookLendingService.henkyaku(expectedUserId, expectedIsbn));
     }
 
     @Test

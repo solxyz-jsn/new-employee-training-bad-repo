@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -112,8 +112,8 @@ class BookReturnApiControllerTest {
     }
 
     @Test
-    @DisplayName("DataIntegrityViolationExceptionがスローされた場合、BadRequestを返す")
-    void shouldReturnBadRequestWhenDataIntegrityViolationExceptionIsThrown() {
+    @DisplayName("DataAccessExceptionのサブクラスがスローされた場合、BadRequestを返す")
+    void shouldReturnBadRequestWhenDataAccessExceptionIsThrown() {
         String isbn = "9784774192359";
         ReturnBookIsbn returnBookIsbn = new ReturnBookIsbn();
         returnBookIsbn.setIsbn(isbn);
@@ -122,7 +122,7 @@ class BookReturnApiControllerTest {
         String userId = "user1";
 
         when(userDetails.getUserId()).thenReturn(userId);
-        doThrow(DataIntegrityViolationException.class).when(bookReturnService).henkyaku(userId, isbn);
+        doThrow(DataAccessResourceFailureException.class).when(bookReturnService).henkyaku(userId, isbn);
 
         ResponseEntity<Void> response = bookReturnApiController.returnBook(returnBookIsbn, userDetails);
 

@@ -15,7 +15,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.orm.jpa.JpaSystemException;
 
@@ -335,7 +335,7 @@ class UserManagementServiceTest {
         userManagementFormWithPassword.setPassword("testPassword");
 
         when(userAccountManager.findByIdWithoutPassword(userManagementFormWithPassword.getUserId())).thenReturn(userAccount);
-        doThrow(DataIntegrityViolationException.class).when(userAccountManager).updateUserWithPassword(any(UserAccount.class), any(Instant.class));
+        doThrow(DataAccessResourceFailureException.class).when(userAccountManager).updateUserWithPassword(any(UserAccount.class), any(Instant.class));
 
         try {
             service.updateUser(userManagementFormWithPassword);
@@ -478,7 +478,7 @@ class UserManagementServiceTest {
         userManagementFormWithoutPassword.setPassword("");
 
         when(userAccountManager.findByIdWithoutPassword(userManagementFormWithoutPassword.getUserId())).thenReturn(userAccount);
-        doThrow(DataIntegrityViolationException.class).when(userAccountManager)
+        doThrow(DataAccessResourceFailureException.class).when(userAccountManager)
                 .updateUserWithoutPassword(any(UserAccount.class), any(Instant.class));
 
         try {
@@ -598,7 +598,7 @@ class UserManagementServiceTest {
     @Test
     @DisplayName("ユーザー情報の削除に失敗した場合、DataAccessExceptionのサブクラスをスローする")
     void shouldThrowDataAccessExceptionIfDeleteUserFails() {
-        doThrow(DataIntegrityViolationException.class).when(userAccountManager).deleteUser(USER_ID);
+        doThrow(DataAccessResourceFailureException.class).when(userAccountManager).deleteUser(USER_ID);
 
         try {
             service.deleteUser(USER_ID);

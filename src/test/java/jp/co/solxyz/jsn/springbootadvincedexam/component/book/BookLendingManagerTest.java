@@ -13,7 +13,8 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataAccessResourceFailureException;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -338,8 +339,8 @@ public class BookLendingManagerTest {
     }
 
     @Test
-    @DisplayName("チェックアウト履歴の登録に失敗した場合、DataIntegrityViolationExceptionが発生する")
-    void shouldThrowDataIntegrityViolationExceptionWhenFailedToSaveCheckoutHistory() {
+    @DisplayName("チェックアウト履歴の登録に失敗した場合、DataAccessExceptionのサブクラスが発生する")
+    void shouldThrowDataAccessExceptionWhenFailedToSaveCheckoutHistory() {
         String stringUUID = "00000000-0000-0000-0000-000000000000";
         UUID uuid = UUID.fromString(stringUUID);
         String userId = "userId";
@@ -388,7 +389,7 @@ public class BookLendingManagerTest {
         when(bookRepository.saveAll(rentalTargetBookList)).thenReturn(rentalTargetBookList);
         when(bookCheckoutHistoryRepository.findUnreturnedBooksByUserId(userId)).thenReturn(Collections.emptyList());
         when(bookCheckoutHistoryRepository.saveAll(rentalTargetCheckoutHistoryList)).thenThrow(
-                new DataIntegrityViolationException("DBへの接続ができませんでした。"));
+                new DataAccessResourceFailureException("DBへの接続ができませんでした。"));
 
         try (MockedStatic<UUID> mockUUID = Mockito.mockStatic(UUID.class);
                 MockedStatic<LocalDateTime> mockLocalDateTime = Mockito.mockStatic(LocalDateTime.class)) {
@@ -396,7 +397,7 @@ public class BookLendingManagerTest {
             mockLocalDateTime.when(LocalDateTime::now).thenReturn(TEST_TIME);
 
             assertThatThrownBy(() -> bookLendingManager.checkout(userId, List.of(book.getIsbn())))
-                    .isInstanceOf(DataIntegrityViolationException.class)
+                    .isInstanceOf(DataAccessException.class)
                     .hasMessageContaining("DBへの接続ができませんでした。");
         }
 
@@ -550,8 +551,8 @@ public class BookLendingManagerTest {
     }
 
     @Test
-    @DisplayName("貸し出し履歴の更新に失敗した場合、DataIntegrityViolationExceptionが発生する")
-    void shouldThrowDataIntegrityViolationExceptionWhenFailedToUpdateCheckoutHistory() {
+    @DisplayName("貸し出し履歴の更新に失敗した場合、DataAccessExceptionのサブクラスが発生する")
+    void shouldThrowDataAccessExceptionWhenFailedToUpdateCheckoutHistory() {
         String userId = "userId";
 
         Book expectedBook = new Book();
@@ -564,11 +565,10 @@ public class BookLendingManagerTest {
 
         when(bookRepository.findById(book.getIsbn())).thenReturn(Optional.of(book));
         when(bookRepository.save(any(Book.class))).thenReturn(book);
-        doThrow(new DataIntegrityViolationException("DBへの接続ができませんでした。") {
-        }).when(bookCheckoutHistoryRepository).updateReturnAt(userId, book.getIsbn());
+        doThrow(new DataAccessResourceFailureException("DBへの接続ができませんでした。")).when(bookCheckoutHistoryRepository).updateReturnAt(userId, book.getIsbn());
 
         assertThatThrownBy(() -> bookLendingManager.returnBook(userId, book.getIsbn()))
-                .isInstanceOf(DataIntegrityViolationException.class);
+                .isInstanceOf(DataAccessException.class);
         verify(bookRepository, times(1)).findById(expectedBook.getIsbn());
         verify(bookRepository, times(1)).save(book);
         verify(bookCheckoutHistoryRepository, times(1)).updateReturnAt(userId, expectedBook.getIsbn());

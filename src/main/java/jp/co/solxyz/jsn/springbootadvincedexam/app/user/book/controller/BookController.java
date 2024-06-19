@@ -15,7 +15,7 @@ import jp.co.solxyz.jsn.springbootadvincedexam.infra.entity.book.Book;
 import jp.co.solxyz.jsn.springbootadvincedexam.security.MyUserDetails;
 import jp.co.solxyz.jsn.springbootadvincedexam.session.CartSession;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -73,7 +73,7 @@ public class BookController {
         List<Book> unCheckedOutBooks;
         try {
             unCheckedOutBooks = bookCartService.co(userDetails.getUserId(), cartSession.getCartList());
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataAccessException e) {
             ModelAndView mav = new ModelAndView("user/book-cart");
             mav.addObject("errorMessage", "処理中にエラーが発生しました。");
             return mav;

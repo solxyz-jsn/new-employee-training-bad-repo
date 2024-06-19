@@ -2,7 +2,7 @@ package jp.co.solxyz.jsn.springbootadvincedexam.app.user.book.service;
 
 import jp.co.solxyz.jsn.springbootadvincedexam.app.user.book.model.UnreturnedBookModel;
 import jp.co.solxyz.jsn.springbootadvincedexam.component.book.BookLendingManager;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,7 +23,7 @@ public class BookLendingService {
         return blm.getUnreturnedBooksByUserId(uid);
     }
 
-    public void henkyaku(String uid, String i) throws DataIntegrityViolationException, NoSuchElementException {
+    public void henkyaku(String uid, String i) throws DataAccessException, NoSuchElementException {
         blm.returnBook(uid, i);
     }
 }

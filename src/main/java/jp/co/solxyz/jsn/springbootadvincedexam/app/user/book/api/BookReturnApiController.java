@@ -4,7 +4,7 @@ import jp.co.solxyz.jsn.springbootadvincedexam.app.user.book.json.ReturnBookIsbn
 import jp.co.solxyz.jsn.springbootadvincedexam.app.user.book.service.BookLendingService;
 import jp.co.solxyz.jsn.springbootadvincedexam.security.MyUserDetails;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -50,7 +50,7 @@ public class BookReturnApiController {
         }
         try {
             bookReturnService.henkyaku(userDetails.getUserId(), returnBookIsbn.getIsbn());
-        } catch (DataIntegrityViolationException | NoSuchElementException e) {
+        } catch (DataAccessException | NoSuchElementException e) {
             return ResponseEntity.badRequest().build();
         }
 

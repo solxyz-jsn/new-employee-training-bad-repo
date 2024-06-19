@@ -14,7 +14,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -157,7 +157,7 @@ class BookCartControllerTest {
     }
 
     @Test
-    @DisplayName("チェックアウト時にDataIntegrityViolationExceptionが発生した場合、エラーが返される")
+    @DisplayName("チェックアウト時にDataAccessExceptionのサブクラスが発生した場合、エラーが返される")
     void shouldReturnErrorWhenExceptionIsThrownOnCheckedOut() throws Exception {
         String expectedUserId = "user1";
 
@@ -168,7 +168,7 @@ class BookCartControllerTest {
         book.setIsbn("1234567890123");
 
         when(cartSession.getCartList()).thenReturn(List.of(cart));
-        doThrow(DataIntegrityViolationException.class).when(bookCartService).co(USER_ID, List.of(cart));
+        doThrow(DataAccessResourceFailureException.class).when(bookCartService).co(USER_ID, List.of(cart));
 
         mockMvc.perform(MockMvcRequestBuilders.post("/book/cart"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
