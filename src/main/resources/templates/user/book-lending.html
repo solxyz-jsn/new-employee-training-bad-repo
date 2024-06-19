@@ -12,39 +12,37 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 
     <script th:inline="javascript">
-        /*<![CDATA[*/
-            const books = JSON.parse(/*[[ ${booksJson} ]]*/ null);
-        /*]]>*/
+/*<![CDATA[*/
+const books = JSON.parse(/*[[ ${booksJson} ]]*/ null);
+/*]]>*/
 
-    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 
-    window.onload = () => {
-      document.getElementById("return-book").addEventListener("click", (event) => {
-         const isbn = event.target.getAttribute("data-isbn");
-         fetch("/api/book/return", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              [csrfHeader]: csrfToken,
-            },
-            body: JSON.stringify({
-              isbn: isbn,
-            }),
-          })
-            .then((response) => {
-              if (response.ok) {
-                alert("書籍を返却しました");
-                location.reload();
-              } else {
-                alert("書籍の返却に失敗しました");
-              }
-            })
-            .catch((error) => {
-              console.error("Error:", error);
-            });
-      });
-    };
+function returnBook(event) {
+  const isbn = event.target.getAttribute("data-isbn");
+  fetch("/api/book/return", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      [csrfHeader]: csrfToken,
+    },
+    body: JSON.stringify({
+      isbn: isbn,
+    }),
+  })
+    .then((response) => {
+      if (response.ok) {
+        alert("書籍を返却しました");
+        location.reload();
+      } else {
+        alert("書籍の返却に失敗しました");
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
+}
 
     </script>
 </head>
@@ -69,8 +67,9 @@
             <td class="table-cell" th:text="${book.author}"></td>
             <td class="table-cell" th:text="${#temporals.format(book.rentalAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
             <td class="table-cell" style="text-align: center; vertical-align: middle;">
-                <label id="return-book" style="cursor: pointer;display: inline-block;vertical-align: middle;" class="material-symbols-outlined"
-                       th:attr="data-isbn=${book.isbn}">unarchive</label>
+                <label style="cursor: pointer;display: inline-block;vertical-align: middle;"
+                       class="material-symbols-outlined"
+                       th:attr="data-isbn=${book.isbn}" onclick="returnBook(event)">unarchive</label>
             </td>
         </tr>
         </tbody>
