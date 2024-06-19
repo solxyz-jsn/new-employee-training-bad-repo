@@ -25,6 +25,11 @@ public class BookMetadataManager {
     /** 書籍貸出履歴リポジトリ */
     private final BookCheckoutHistoryRepository bookCheckoutHistoryRepository;
 
+    /**
+     * コンストラクタ
+     * @param bookRepository 書籍リポジトリ
+     * @param bookCheckoutHistoryRepository 書籍貸出履歴リポジトリ
+     */
     public BookMetadataManager(BookRepository bookRepository, BookCheckoutHistoryRepository bookCheckoutHistoryRepository) {
         this.bookRepository = bookRepository;
         this.bookCheckoutHistoryRepository = bookCheckoutHistoryRepository;
@@ -33,9 +38,11 @@ public class BookMetadataManager {
     /**
      * 書籍情報の登録
      * @param book 登録する書籍情報
+     * @throws IllegalArgumentException 一意制約のある項目が重複している場合
+     * @throws DataAccessException DBとの接続で問題が発生した場合
      */
     @Transactional(rollbackFor = Exception.class)
-    public void registerBook(Book book) {
+    public void registerBook(Book book) throws IllegalArgumentException, DataAccessException {
         try {
             Book avaliableBook = bookRepository.findById(book.getIsbn()).orElse(null);
             if (avaliableBook != null) {
@@ -54,9 +61,13 @@ public class BookMetadataManager {
      * 書籍情報の更新
      * @param book 更新する書籍情報
      * @param optimisticLockUpdatedAt 楽観的ロック用の最新の更新日時
+     * @throws NoSuchElementException DBに更新対象の書籍が存在しない場合
+     * @throws OptimisticLockingFailureException 対象の書籍が既に他の管理者によって更新されていた場合
+     * @throws DataAccessException DBとの接続で問題が発生した場合
      */
     @Transactional(rollbackFor = Exception.class)
-    public void updateBook(Book book, LocalDateTime optimisticLockUpdatedAt) {
+    public void updateBook(Book book, LocalDateTime optimisticLockUpdatedAt)
+            throws OptimisticLockingFailureException, NoSuchElementException, DataAccessException {
         Book currentBook = bookRepository.findById(book.getIsbn()).orElse(null);
         if (currentBook == null) {
             log.info("指定されたISBNの書籍が存在しません。");
@@ -82,9 +93,12 @@ public class BookMetadataManager {
     /**
      * 書籍情報の削除
      * @param isbn ISBN
+     * @throws NoSuchElementException DBに削除対象の書籍が存在しない場合
+     * @throws IllegalStateException DBに貸し出し中の書籍が存在する場合
+     * @throws DataAccessException DBとの接続で問題が発生した場合
      */
     @Transactional(rollbackFor = Exception.class)
-    public void deleteByIsbn(String isbn) {
+    public void deleteByIsbn(String isbn) throws NoSuchElementException, IllegalStateException, DataAccessException {
         Book book = bookRepository.findById(isbn).orElse(null);
 
         if (book == null) {

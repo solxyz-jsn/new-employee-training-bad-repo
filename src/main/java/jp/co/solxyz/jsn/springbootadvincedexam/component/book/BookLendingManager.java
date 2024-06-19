@@ -6,7 +6,8 @@ import jp.co.solxyz.jsn.springbootadvincedexam.infra.entity.book.BookCheckoutHis
 import jp.co.solxyz.jsn.springbootadvincedexam.infra.reposiroty.book.BookCheckoutHistoryRepository;
 import jp.co.solxyz.jsn.springbootadvincedexam.infra.reposiroty.book.BookRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,10 +50,11 @@ public class BookLendingManager {
      * チェックアウト
      * @param userId ユーザID
      * @param isbnList ISBNリスト
-     * @return 借りられなかった本
+     * @return 借りられなかった書籍リスト
+     * @throws DataAccessException DBとの接続で問題が発生した場合
      */
     @Transactional(rollbackFor = Exception.class)
-    public List<Book> checkout(String userId, List<String> isbnList) {
+    public List<Book> checkout(String userId, List<String> isbnList) throws DataAccessException {
         // 借りられなかった本
         List<Book> notCheckoutBooks = new ArrayList<>();
 
@@ -94,7 +96,7 @@ public class BookLendingManager {
         bookRepository.saveAll(books);
         try {
             bookCheckoutHistoryRepository.saveAll(bookCheckoutHistories);
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataAccessException e) {
             log.error("チェックアウト履歴の登録に失敗しました。", e);
             throw e;
         }
@@ -128,11 +130,11 @@ public class BookLendingManager {
      * 貸し出し中の本を返却
      * @param userId ユーザID
      * @param isbn ISBN
-     * @throws DataIntegrityViolationException データ整合性違反
-     * @throws NoSuchElementException 返却対象が存在しない
+     * @throws NoSuchElementException DBに返却対象が存在しない場合
+     * @throws DataAccessException DBとの接続で問題が発生した場合
      */
     @Transactional(rollbackFor = Exception.class)
-    public void returnBook(String userId, String isbn) throws DataIntegrityViolationException, NoSuchElementException {
+    public void returnBook(String userId, String isbn) throws DataAccessException, NoSuchElementException {
         try {
             Book book = bookRepository.findById(isbn).orElseThrow();
             book.setAvailableStock(book.getAvailableStock() + 1);
@@ -142,7 +144,7 @@ public class BookLendingManager {
         } catch (NoSuchElementException e) {
             log.info("ISBNの一致する書籍が見つかりません。", e);
             throw e;
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataAccessException e) {
             log.error("貸し出し履歴の更新に失敗しました。", e);
             throw e;
         }

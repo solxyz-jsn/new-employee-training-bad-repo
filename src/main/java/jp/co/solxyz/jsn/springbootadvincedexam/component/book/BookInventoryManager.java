@@ -1,6 +1,7 @@
 package jp.co.solxyz.jsn.springbootadvincedexam.component.book;
 
 import jp.co.solxyz.jsn.springbootadvincedexam.infra.entity.book.Book;
+import jp.co.solxyz.jsn.springbootadvincedexam.infra.reposiroty.book.BookCheckoutHistoryRepository;
 import jp.co.solxyz.jsn.springbootadvincedexam.infra.reposiroty.book.BookRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -15,27 +16,18 @@ import java.util.NoSuchElementException;
 @Slf4j
 public class BookInventoryManager {
 
-    /** 書籍リポジトリ*/
     private final BookRepository bookRepository;
 
-    /**
-     * コンストラクタ
-     * @param bookRepository 書籍リポジトリ
-     */
-    public BookInventoryManager(BookRepository bookRepository) {
+    public BookInventoryManager(BookRepository bookRepository, BookCheckoutHistoryRepository bookCheckoutHistoryRepository) {
         this.bookRepository = bookRepository;
     }
 
-    /**
-     * 全ての書籍を取得
-     * @return 書籍リスト
-     */
     public List<Book> getAllBooks() {
         return bookRepository.findAll();
     }
 
     /**
-     * ISBNリストから書籍を取得
+     * IDから書籍を取得
      * @param isbnList ISBNリスト
      * @return 書籍リスト
      */
@@ -47,13 +39,17 @@ public class BookInventoryManager {
      * ISBNから書籍を1件取得
      * @param isbn ISBN
      * @return 書籍
+     * @throws NoSuchElementException DBに指定されたISBNの書籍が存在しない場合
      */
     public Book getBookByIsbn(String isbn) {
+        // 【#12345 修正START】DBから値を取得するように修正　担当： ソルク太郎
+        // Book book = CSVLoader.load("temp.csv");
         Book book = bookRepository.findById(isbn).orElse(null);
         if (book == null) {
             log.info("指定されたISBNの書籍が存在しません。");
             throw new NoSuchElementException("指定されたISBNの書籍が存在しない、または削除されています。");
         }
+        // 【#12345 修正END】DBから値を取得するように修正　担当： ソルク太郎
         return book;
     }
 
@@ -61,7 +57,7 @@ public class BookInventoryManager {
      * 渡された在庫数が現在の在庫数よりも少ないかチェック
      * @param inputtedStock 比較する在庫数
      * @param availableStock 現在の在庫数
-     * @throws IllegalArgumentException inputtedStockがavailableStockを下回る場合
+     * @throws IllegalArgumentException 変更在庫数がDBに保存されている現在在庫数を下回る場合
      */
     public void compareInputStockLowerThanCurrent(int inputtedStock, int availableStock) throws IllegalArgumentException {
         if (inputtedStock < availableStock) {
