@@ -39,22 +39,22 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/book")
 public class BookController {
 
-	/**
+    /**
      * カートセッション
      */
 	private final CartSession cartSession;
 
-	/**
+    /**
      * カートサービス
      */
 	private final BookCartService bookCartService;
 
-	/**
+    /**
      * 書籍一覧サービス
      */
 	private final BookListService bookListService;
 
-	/**
+    /**
      * 書籍返却サービス
      */
 	private final BookLendingService bookReturnService;
