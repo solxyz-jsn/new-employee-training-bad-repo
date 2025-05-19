@@ -42,22 +42,22 @@ public class BookController {
     /**
      * カートセッション
      */
-	private final CartSession cartSession;
+    private final CartSession cartSession;
 
     /**
      * カートサービス
      */
-	private final BookCartService bookCartService;
+    private final BookCartService bookCartService;
 
     /**
      * 書籍一覧サービス
      */
-	private final BookListService bookListService;
+    private final BookListService bookListService;
 
     /**
      * 書籍返却サービス
      */
-	private final BookLendingService bookReturnService;
+    private final BookLendingService bookReturnService;
 
     /**
      * コンストラクタ
