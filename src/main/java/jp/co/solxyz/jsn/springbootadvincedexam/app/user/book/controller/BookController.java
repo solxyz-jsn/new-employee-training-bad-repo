@@ -1,10 +1,23 @@
 package jp.co.solxyz.jsn.springbootadvincedexam.app.user.book.controller;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
+import org.springframework.dao.DataAccessException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
+
 import jp.co.solxyz.jsn.springbootadvincedexam.app.user.book.model.BookModel;
 import jp.co.solxyz.jsn.springbootadvincedexam.app.user.book.model.CartBookModel;
 import jp.co.solxyz.jsn.springbootadvincedexam.app.user.book.model.UnreturnedBookModel;
@@ -15,34 +28,44 @@ import jp.co.solxyz.jsn.springbootadvincedexam.infra.entity.book.Book;
 import jp.co.solxyz.jsn.springbootadvincedexam.security.MyUserDetails;
 import jp.co.solxyz.jsn.springbootadvincedexam.session.CartSession;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.servlet.ModelAndView;
-
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 /**
  * TODO: リファクタリング（３）
+ * 
+ * Controllerをカート・書籍一覧・書籍返却の3つの機能に分割しよう
  */
 @Controller
 @Slf4j
 @RequestMapping("/book")
 public class BookController {
 
+    /**
+     * カートセッション
+     */
     private final CartSession cartSession;
 
+    /**
+     * カートサービス
+     */
     private final BookCartService bookCartService;
 
+    /**
+     * 書籍一覧サービス
+     */
     private final BookListService bookListService;
 
+    /**
+     * 書籍返却サービス
+     */
     private final BookLendingService bookReturnService;
 
+    /**
+     * コンストラクタ
+     * @param cartSession カートセッション
+     * @param bookCartService カートサービス
+     * @param bookListService 書籍一覧サービス
+     * @param bookReturnService 書籍返却サービス
+     */
     public BookController(CartSession cartSession, BookCartService bookCartService, BookListService bookListService,
             BookLendingService bookReturnService) {
         this.cartSession = cartSession;
@@ -51,6 +74,10 @@ public class BookController {
         this.bookReturnService = bookReturnService;
     }
 
+    /**
+     * カート画面表示
+     * @return カート画面
+     */
     @GetMapping(path = "/cart")
     public ModelAndView index() {
         ModelAndView mav = new ModelAndView("user/book-cart");
@@ -59,6 +86,11 @@ public class BookController {
         return mav;
     }
 
+    /**
+     * 書籍返却画面表示
+     * @param userDetails ログインユーザ情報
+     * @return 書籍返却画面
+     */
     @GetMapping(path = "/return")
     public ModelAndView index(@AuthenticationPrincipal MyUserDetails userDetails) {
         ModelAndView mav = new ModelAndView("user/book-lending");
@@ -68,6 +100,11 @@ public class BookController {
         return mav;
     }
 
+    /**
+     * カート内の書籍を貸出
+     * @param userDetails ユーザ情報
+     * @return カート画面
+     */
     @PostMapping(path = "/cart")
     public ModelAndView checkout(@AuthenticationPrincipal MyUserDetails userDetails) {
         List<Book> unCheckedOutBooks;
@@ -95,6 +132,11 @@ public class BookController {
         return mav;
     }
 
+    /**
+     * 書籍一覧画面表示
+     * @return 書籍一覧画面
+     * @throws JsonProcessingException 指定した日付のフォーマットが不適切、または変換対象がJSON形式にシリアライズできない場合
+     */
     @GetMapping(path = "/list")
     public ModelAndView bookList() throws JsonProcessingException {
         ModelAndView mav = new ModelAndView("user/book-list");
