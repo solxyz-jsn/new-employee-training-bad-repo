@@ -1,51 +1,234 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" lang="ja">
 <head>
-    <title>Spring Security Example </title>
+    <title>書籍管理アプリ - カート</title>
     <link th:href="@{/css/main.css}" rel="stylesheet">
     <link th:href="@{/css/cart.css}" rel="stylesheet">
     <link th:href="@{/css/list.css}" rel="stylesheet">
     <link th:href="@{/css/button.css}" rel="stylesheet">
+
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <script th:inline="javascript">
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+        const openBdBatchSize = 20;
+
+        function showCoverPlaceholder(img) {
+            const frame = img.closest('.cart-cover-frame');
+            img.hidden = true;
+            img.removeAttribute('src');
+            img.removeAttribute('alt');
+            frame?.classList.remove('has-cover');
+        }
+
+        function applyCoverImage(img, coverUrl) {
+            if (!coverUrl) {
+                showCoverPlaceholder(img);
+                return;
+            }
+            const frame = img.closest('.cart-cover-frame');
+            img.onerror = () => showCoverPlaceholder(img);
+            img.hidden = false;
+            frame?.classList.add('has-cover');
+            img.src = coverUrl;
+            img.alt = img.getAttribute('data-cover-title') + ' の書影';
+        }
+
+        function updateCartCount(count) {
+            const totalCount = document.getElementById('cart-total-count');
+            const emptyState = document.getElementById('cart-empty-state');
+            const cartTable = document.getElementById('cart-table-wrap');
+            const checkoutButton = document.getElementById('checkout-button');
+
+            document.querySelectorAll('.app-menu-badge').forEach(badge => {
+                badge.textContent = count;
+            });
+            if (totalCount) {
+                totalCount.textContent = `${count}冊`;
+            }
+            if (emptyState) {
+                emptyState.hidden = count !== 0;
+            }
+            if (cartTable) {
+                cartTable.hidden = count === 0;
+            }
+            if (checkoutButton) {
+                checkoutButton.disabled = count === 0;
+            }
+        }
+
+        async function hydrateCartCovers() {
+            const coverImages = Array.from(document.querySelectorAll('[data-cover-isbn]'));
+            const isbnList = coverImages
+                .map(img => img.getAttribute('data-cover-isbn'))
+                .filter(isbn => /^\d{13}$/.test(isbn));
+            if (isbnList.length === 0) {
+                return;
+            }
+
+            for (let index = 0; index < isbnList.length; index += openBdBatchSize) {
+                const batch = isbnList.slice(index, index + openBdBatchSize);
+                try {
+                    const response = await fetch(`/api/book/covers?isbn=${batch.map(encodeURIComponent).join(',')}`);
+                    if (!response.ok) {
+                        throw new Error('cover request failed');
+                    }
+                    const coverUrls = await response.json();
+                    batch.forEach(isbn => {
+                        document.querySelectorAll(`[data-cover-isbn="${isbn}"]`).forEach(img => {
+                            applyCoverImage(img, coverUrls[isbn]);
+                        });
+                    });
+                } catch (error) {
+                    batch.forEach(isbn => {
+                        document.querySelectorAll(`[data-cover-isbn="${isbn}"]`).forEach(showCoverPlaceholder);
+                    });
+                    console.warn('openBDから書影を取得できませんでした。', error);
+                }
+            }
+        }
+
+        function deleteCartBook(isbn) {
+            fetch('/api/book/cart', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
+                },
+                body: JSON.stringify({isbn})
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error('delete request failed');
+                }
+                const row = document.querySelector(`[data-cart-row="${isbn}"]`);
+                row?.remove();
+                updateCartCount(document.querySelectorAll('[data-cart-row]').length);
+            }).catch(error => {
+                console.error('Error:', error);
+                alert('カートから削除できませんでした');
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            hydrateCartCovers();
+            document.querySelectorAll('[data-delete-isbn]').forEach(button => {
+                button.addEventListener('click', () => deleteCartBook(button.getAttribute('data-delete-isbn')));
+            });
+            updateCartCount(document.querySelectorAll('[data-cart-row]').length);
+        });
+    </script>
 </head>
-<body>
+<body class="cart-screen">
 
 <div id="header"
      th:replace="~{common/nav-bar :: bar}"></div>
-<div th:if="${errorMessage}">
-    <div class="alert alert-danger" role="alert">
-        <svg class="alert-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-             viewBox="0 0 20 20">
-            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-        </svg>
-        <span class="sr-only">Info</span>
-        <div class="alert-content">
-            <span class="alert-title" th:text="${errorMessage}"></span>
+
+<main class="cart-main">
+    <section class="cart-heading">
+        <div class="cart-heading-title">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                <path d="M4.5 5.25h2l1.6 9.2a2 2 0 0 0 1.97 1.65h6.75a2 2 0 0 0 1.95-1.56l1.02-4.54H8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M10 20.25h.01M17 20.25h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            <h1>カート</h1>
+        </div>
+        <p>借りたい書籍の一覧です。内容を確認して、手続きを進めましょう。</p>
+    </section>
+
+    <div class="page-alert cart-alert" th:if="${errorMessage}">
+        <div class="alert alert-danger" role="alert">
+            <svg class="alert-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                 viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+            </svg>
+            <span class="sr-only">Info</span>
+            <div class="alert-content">
+                <span class="alert-title" th:text="${errorMessage}"></span>
+            </div>
         </div>
     </div>
-</div>
-<div class="table-container">
-    <table id="book-table" class="table">
-        <thead class="table-header">
-        <tr>
-            <th scope="col" class="table-cell">書籍名</th>
-            <th scope="col" class="table-cell">出版社</th>
-            <th scope="col" class="table-cell">著者名</th>
-        </tr>
-        </thead>
 
-        <tbody>
-        <tr th:each="book : ${cartList}" class="table-row">
-            <th scope="row" class="table-cell font-medium" th:text="${book.title}"></th>
-            <td class="table-cell" th:text="${book.publisher}"></td>
-            <td class="table-cell" th:text="${book.author}"></td>
-        </tr>
-        </tbody>
+    <section class="cart-card">
+        <h2>カートに入っている書籍</h2>
+        <p id="cart-empty-state" class="cart-empty-state" th:hidden="${cartCount != 0}">カートに書籍は入っていません。</p>
+        <div id="cart-table-wrap" class="cart-table-wrap" th:hidden="${cartCount == 0}">
+            <table id="book-table" class="table cart-table">
+                <thead class="table-header">
+                <tr>
+                    <th scope="col" class="table-cell">書籍</th>
+                    <th scope="col" class="table-cell">出版社</th>
+                    <th scope="col" class="table-cell">著者</th>
+                    <th scope="col" class="table-cell">返却期限の目安</th>
+                    <th scope="col" class="table-cell">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="book : ${cartList}" class="table-row cart-row" th:attr="data-cart-row=${book.isbn}">
+                    <th scope="row" class="table-cell font-medium cart-book-cell">
+                        <span class="cart-cover-frame">
+                            <img class="book-cover" th:attr="data-cover-isbn=${book.isbn}, data-cover-title=${book.title}" th:alt="${book.title + ' の書影'}" loading="lazy" hidden>
+                            <span class="cover-placeholder" aria-hidden="true">
+                                <span class="cover-placeholder-text">NO IMAGE</span>
+                            </span>
+                        </span>
+                        <span class="cart-book-title-group">
+                            <span class="cart-book-title" th:text="${book.title}"></span>
+                        </span>
+                    </th>
+                    <td class="table-cell" th:text="${book.publisher}"></td>
+                    <td class="table-cell" th:text="${book.author}"></td>
+                    <td class="table-cell">
+                        <span class="cart-due">
+                            <span class="cart-due-days">
+                                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                                    <path d="M7 3.75v3M17 3.75v3M4.75 9.25h14.5M6.5 5.25h11A1.75 1.75 0 0 1 19.25 7v10.5a1.75 1.75 0 0 1-1.75 1.75h-11a1.75 1.75 0 0 1-1.75-1.75V7A1.75 1.75 0 0 1 6.5 5.25Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                </svg>
+                                <span th:text="${returnDueDays + '日後'}">14日後</span>
+                            </span>
+                            <span class="cart-due-date" th:text="${returnDueDateText}">2026/01/01 (木)</span>
+                        </span>
+                    </td>
+                    <td class="table-cell">
+                        <button type="button" class="cart-delete-button" th:attr="data-delete-isbn=${book.isbn}, aria-label=${book.title + ' をカートから削除'}">
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                                <path d="M6.75 7.25h10.5M10 7.25v-.9a1.6 1.6 0 0 1 1.6-1.6h.8a1.6 1.6 0 0 1 1.6 1.6v.9M8.25 9.75l.55 8.15a1.5 1.5 0 0 0 1.5 1.35h3.4a1.5 1.5 0 0 0 1.5-1.35l.55-8.15M10.75 11.75v4.5M13.25 11.75v4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            削除
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="cart-total">
+                <span>合計</span>
+                <strong id="cart-total-count" th:text="${cartCount + '冊'}">0冊</strong>
+            </div>
+        </div>
+    </section>
 
-    </table>
-    <form th:action="@{/book/cart}" method="post">
-        <button class="rental-button">借りる</button>
-    </form>
-</div>
+    <section class="cart-note" aria-label="返却期限について">
+        <span class="cart-note-icon">i</span>
+        <div>
+            <h2>返却期限について</h2>
+            <p th:text="${'返却期限の目安は、書籍を借りた日から' + returnDueDays + '日後です。期限は延長できませんのでご注意ください。'}"></p>
+        </div>
+    </section>
+
+    <div class="cart-actions">
+        <a class="cart-action-button secondary-action" th:href="@{/book/list}">買い物を続ける</a>
+        <form th:action="@{/book/cart}" method="post">
+            <button id="checkout-button" type="submit" class="cart-action-button primary-action" th:disabled="${cartCount == 0}">
+                借りる手続きへ進む
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                    <path d="M5.75 12h12.5M13.75 7.5 18.25 12l-4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </form>
+    </div>
+
+    <footer class="cart-page-footer">© 2024 書籍管理アプリ. All rights reserved.</footer>
+</main>
 
 </body>
 </html>

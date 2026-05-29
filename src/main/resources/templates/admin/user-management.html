@@ -5,8 +5,9 @@
     <meta charset="UTF-8">
     <title>ユーザ管理</title>
     <link th:href="@{/css/main.css}" rel="stylesheet">
-    <link th:href="@{/css/list.css}" rel="stylesheet">
     <link th:href="@{/css/button.css}" rel="stylesheet">
+    <link th:href="@{/css/modal.css}" rel="stylesheet">
+    <link th:href="@{/css/user-management.css}" rel="stylesheet">
 
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
@@ -20,13 +21,16 @@ const headers = {
   "Content-Type": "application/json",
   [csrfHeader]: csrfToken,
 };
+const USER_MODAL_FOCUSABLE_SELECTOR = "button, [href], input, select, textarea, [tabindex]:not([tabindex=\"-1\"])";
+let userModalMode = "create";
+let userModalTrigger = null;
 
 function addUser() {
   const API_ENDPOINT = ROOT_API_URL;
-  const userName = document.getElementById("userName").value;
-  const email = document.getElementById("email").value;
-  const isAdmin = document.getElementById("isAdmin").checked;
-  const password = document.getElementById("password").value;
+  const userName = document.getElementById("modalUserName").value;
+  const email = document.getElementById("modalEmail").value;
+  const isAdmin = document.getElementById("modalIsAdmin").checked;
+  const password = document.getElementById("modalPassword").value;
   const managedUser = {
     userName: userName,
     email: email,
@@ -44,14 +48,13 @@ function addUser() {
     });
 }
 
-function updateUser(event) {
+function updateUser() {
   const API_ENDPOINT = ROOT_API_URL;
-  const row = event.target.closest(".table-row");
-  const userId = row.querySelector(".userId").textContent;
-  const userName = row.querySelector(".userName").value;
-  const email = row.querySelector(".email").value;
-  const password = row.querySelector(".password").value;
-  const isAdmin = row.querySelector(".isAdmin").checked;
+  const userId = document.getElementById("modalUserId").value;
+  const userName = document.getElementById("modalUserName").value;
+  const email = document.getElementById("modalEmail").value;
+  const password = document.getElementById("modalPassword").value;
+  const isAdmin = document.getElementById("modalIsAdmin").checked;
 
   const managedUser = {
     userId: userId,
@@ -73,11 +76,13 @@ function updateUser(event) {
 
 function deleteUser(event) {
   const API_ENDPOINT = ROOT_API_URL + "/";
-  const row = event.target.closest(".table-row");
-  const userId = row.querySelector(".userId").textContent;
-  const managedUser = {
-    userId: userId,
-  };
+  const row = event.target.closest(".user-row");
+  const userId = row.dataset.userId;
+  const userName = row.dataset.userName;
+
+  if (!confirm(userName + " を削除します。よろしいですか？")) {
+    return;
+  }
 
   fetcher.delete(API_ENDPOINT + userId, headers)
     .then(() => {
@@ -89,58 +94,338 @@ function deleteUser(event) {
     });
 }
 
+function openCreateUserModal(event) {
+  userModalMode = "create";
+  document.getElementById("user-modal-title").textContent = "ユーザを追加";
+  document.getElementById("modalSubmitButton").textContent = "追加";
+  document.getElementById("modalUserId").value = "";
+  document.getElementById("modalUserName").value = "";
+  document.getElementById("modalEmail").value = "";
+  document.getElementById("modalPassword").value = "";
+  document.getElementById("modalPassword").placeholder = "初期パスワード";
+  document.getElementById("modalIsAdmin").checked = false;
+  openUserModal(event.currentTarget);
+}
+
+function openEditUserModal(event) {
+  const row = event.target.closest(".user-row");
+  userModalMode = "edit";
+  document.getElementById("user-modal-title").textContent = "ユーザを編集";
+  document.getElementById("modalSubmitButton").textContent = "更新";
+  document.getElementById("modalUserId").value = row.dataset.userId;
+  document.getElementById("modalUserName").value = row.dataset.userName;
+  document.getElementById("modalEmail").value = row.dataset.email;
+  document.getElementById("modalPassword").value = "";
+  document.getElementById("modalPassword").placeholder = "変更する場合のみ入力";
+  document.getElementById("modalIsAdmin").checked = row.dataset.role === "admin";
+  openUserModal(event.currentTarget);
+}
+
+function openUserModal(trigger) {
+  const modal = document.getElementById("user-modal");
+  userModalTrigger = trigger || document.activeElement;
+  modal.classList.add("is-open");
+  modal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("is-modal-open");
+  document.getElementById("modalUserName").focus({preventScroll: true});
+}
+
+function closeUserModal() {
+  const modal = document.getElementById("user-modal");
+  const shouldRestoreFocus = modal.classList.contains("is-open");
+  modal.classList.remove("is-open");
+  modal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("is-modal-open");
+
+  if (shouldRestoreFocus && userModalTrigger && document.contains(userModalTrigger)) {
+    userModalTrigger.focus({preventScroll: true});
+  }
+  userModalTrigger = null;
+}
+
+function getFocusableUserModalElements() {
+  const modal = document.getElementById("user-modal");
+  return Array.from(modal.querySelectorAll(USER_MODAL_FOCUSABLE_SELECTOR))
+    .filter((element) => !element.disabled && element.getClientRects().length > 0);
+}
+
+function trapUserModalFocus(event) {
+  const modal = document.getElementById("user-modal");
+  if (!modal.classList.contains("is-open")) {
+    return;
+  }
+
+  if (event.key === "Escape") {
+    event.preventDefault();
+    closeUserModal();
+    return;
+  }
+
+  if (event.key !== "Tab") {
+    return;
+  }
+
+  const focusableElements = getFocusableUserModalElements();
+  if (focusableElements.length === 0) {
+    event.preventDefault();
+    modal.focus({preventScroll: true});
+    return;
+  }
+
+  const firstElement = focusableElements[0];
+  const lastElement = focusableElements[focusableElements.length - 1];
+
+  if (!modal.contains(document.activeElement)) {
+    event.preventDefault();
+    firstElement.focus({preventScroll: true});
+  } else if (event.shiftKey && document.activeElement === firstElement) {
+    event.preventDefault();
+    lastElement.focus({preventScroll: true});
+  } else if (!event.shiftKey && document.activeElement === lastElement) {
+    event.preventDefault();
+    firstElement.focus({preventScroll: true});
+  }
+}
+
+function submitUserForm() {
+  if (userModalMode === "edit") {
+    updateUser();
+    return;
+  }
+  addUser();
+}
+
+function filterUsers() {
+  const query = document.getElementById("userSearch").value.trim().toLowerCase();
+  const role = document.getElementById("permissionFilter").value;
+  const rows = document.querySelectorAll(".user-row");
+  let visibleCount = 0;
+
+  rows.forEach((row) => {
+    const keyword = [
+      row.dataset.userId,
+      row.dataset.userName,
+      row.dataset.email,
+    ].join(" ").toLowerCase();
+    const matchesKeyword = keyword.includes(query);
+    const matchesRole = role === "all" || row.dataset.role === role;
+    const isVisible = matchesKeyword && matchesRole;
+    row.hidden = !isVisible;
+    if (isVisible) {
+      visibleCount++;
+    }
+  });
+
+  const noResultsRow = document.getElementById("noResultsRow");
+  noResultsRow.hidden = visibleCount !== 0;
+}
+
+function copyUserId(event) {
+  const userId = event.target.closest(".user-row").dataset.userId;
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(userId).catch(() => copyUserIdWithFallback(userId));
+    return;
+  }
+
+  copyUserIdWithFallback(userId);
+}
+
+function copyUserIdWithFallback(userId) {
+  const textarea = document.createElement("textarea");
+  textarea.value = userId;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+
+  try {
+    document.body.appendChild(textarea);
+    textarea.select();
+    if (!document.execCommand("copy")) {
+      alert("ユーザIDをコピーできませんでした。手動でコピーしてください: " + userId);
+    }
+  } catch (error) {
+    alert("ユーザIDをコピーできませんでした。手動でコピーしてください: " + userId);
+  } finally {
+    if (textarea.parentNode) {
+      document.body.removeChild(textarea);
+    }
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("userSearch").addEventListener("input", filterUsers);
+  document.getElementById("permissionFilter").addEventListener("change", filterUsers);
+  filterUsers();
+  document.getElementById("user-modal").addEventListener("click", (event) => {
+    if (event.target.id === "user-modal") {
+      closeUserModal();
+    }
+  });
+  document.addEventListener("keydown", trapUserModalFocus);
+});
+
     </script>
 </head>
-<body>
+<body class="user-management-screen">
 <div id="foo" th:replace="~{common/nav-bar :: bar}"></div>
-<h2 class="section-title">ユーザ追加</h2>
-<div class="table-container">
-    <table id="book-table" class="table">
-        <thead class="table-header">
-        <tr>
-            <th scope="col" class="table-cell">ユーザID</th>
-            <th scope="col" class="table-cell">ユーザ名</th>
-            <th scope="col" class="table-cell">メール</th>
-            <th scope="col" class="table-cell">新規パスワード</th>
-            <th scope="col" class="table-cell">管理者</th>
-            <th scope="col" class="table-cell">操作</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr class="table-row">
-            <td class="table-cell">
-                <laba>******</laba>
-            </td>
-            <td class="table-cell">
-                <input id="userName" type="text" placeholder="田中　太郎">
-            </td>
-            <td class="table-cell">
-                <input id="email" type="text" placeholder="メールアドレス">
-            </td>
-            <td class="table-cell">
-                <input id="password" type="password" placeholder="********" maxlength="10">
-            </td>
-            <td class="table-cell">
-                <input id="isAdmin" type="checkbox">
-            </td>
-            <td class="table-cell">
-                <button class="add-button" onclick="addUser()">追加</button>
-            </td>
-        </tr>
+<main class="user-management-main">
+    <section class="user-management-header">
+        <div>
+            <h1>ユーザ管理</h1>
+            <p>システムに登録されているユーザの情報を管理できます。</p>
+        </div>
 
-        <tr th:each="user : ${users}" class="table-row">
-            <th scope="row" class="table-cell font-medium"><label class="userId" th:text="${user.userId}"></label></th>
-            <td class="table-cell"><input class="userName" type="text" th:value="${user.userName}"></td>
-            <td class="table-cell"><input class="email" type="text" th:value="${user.email}"></td>
-            <td class="table-cell"><input class="password" type="password" placeholder="********" maxlength="10"></td>
-            <td class="table-cell"><input class="isAdmin" type="checkbox" th:checked="${user.isAdmin}"></td>
-            <td class="table-cell">
-                <button class="update-button" onclick="updateUser(event)">更新</button>
-                <button class="delete-button" onclick="deleteUser(event)">削除</button>
-        </tr>
+        <button type="button" class="primary-action-button" onclick="openCreateUserModal(event)">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span>ユーザを追加</span>
+        </button>
+    </section>
 
-        </tbody>
-    </table>
+    <section class="user-filter-panel" aria-label="ユーザ検索">
+        <label class="search-control" for="userSearch">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                <path d="m20 20-4.35-4.35M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+            </svg>
+            <input id="userSearch" type="search" placeholder="ユーザ名、メールアドレス、ユーザIDで検索" autocomplete="off"
+                   aria-label="ユーザ検索">
+        </label>
+        <label class="permission-control" for="permissionFilter">
+            <select id="permissionFilter" aria-label="権限フィルター">
+                <option value="all">すべての権限</option>
+                <option value="admin">管理者</option>
+                <option value="general">一般ユーザ</option>
+            </select>
+        </label>
+    </section>
+
+    <section class="user-table-card" aria-label="ユーザ一覧">
+        <div class="user-table-scroll">
+            <table class="user-table">
+                <thead>
+                <tr>
+                    <th scope="col">ユーザID</th>
+                    <th scope="col">ユーザ名</th>
+                    <th scope="col">メールアドレス</th>
+                    <th scope="col">権限</th>
+                    <th scope="col">管理者</th>
+                    <th scope="col">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="user : ${users}"
+                    class="user-row"
+                    th:attr="data-user-id=${user.userId}, data-user-name=${user.userName}, data-email=${user.email}, data-role=${user.isAdmin ? 'admin' : 'general'}">
+                    <th scope="row" class="user-id-cell">
+                        <span class="user-id" th:text="${user.userId}">f3d6bcdc-6c32-45b6-9aea-1aa6d36b6b17</span>
+                        <button type="button" class="copy-id-button" onclick="copyUserId(event)" aria-label="ユーザIDをコピー" title="ユーザIDをコピー">
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                                <path d="M8 8.75A2.75 2.75 0 0 1 10.75 6h6.5A2.75 2.75 0 0 1 20 8.75v6.5A2.75 2.75 0 0 1 17.25 18h-6.5A2.75 2.75 0 0 1 8 15.25v-6.5Z" stroke="currentColor" stroke-width="1.8"/>
+                                <path d="M6 14.75h-.25A2.75 2.75 0 0 1 3 12V5.75A2.75 2.75 0 0 1 5.75 3H12a2.75 2.75 0 0 1 2.75 2.75V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                            </svg>
+                        </button>
+                    </th>
+                    <td class="user-name-cell" th:text="${user.userName}">テスト 太郎</td>
+                    <td th:text="${user.email}">test@solxyz.co.jp</td>
+                    <td>
+                        <span class="role-badge" th:classappend="${user.isAdmin} ? ' is-admin' : ' is-general'"
+                              th:text="${user.isAdmin ? '管理者' : '一般ユーザ'}">一般ユーザ</span>
+                    </td>
+                    <td class="admin-state-cell">
+                        <span class="admin-check" th:if="${user.isAdmin}" aria-label="管理者">
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                                <path d="m7 12.5 3.2 3.2L17 8.9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                        <span class="admin-empty" th:unless="${user.isAdmin}" aria-label="一般ユーザ"></span>
+                    </td>
+                    <td>
+                        <div class="row-actions">
+                            <button type="button" class="outline-action-button edit-action" onclick="openEditUserModal(event)">
+                                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                                    <path d="M4.75 19.25h4.5L18.4 10.1a2.12 2.12 0 0 0-3-3L6.25 16.25l-1.5 3Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="m13.75 8.75 1.5 1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                </svg>
+                                <span>編集</span>
+                            </button>
+                            <button type="button" class="outline-action-button delete-action" onclick="deleteUser(event)">
+                                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                                    <path d="M5 7h14M10 11v5M14 11v5M8 7l.5 12h7L16 7M9.5 7V5.5A1.5 1.5 0 0 1 11 4h2a1.5 1.5 0 0 1 1.5 1.5V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span>削除</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <tr id="noResultsRow" class="no-results-row" hidden>
+                    <td colspan="6">条件に一致するユーザはいません。</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination-bar" aria-label="ページ送り">
+            <button type="button" class="pagination-button" disabled aria-label="前のページ">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                    <path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <button type="button" class="pagination-button is-current" aria-current="page">1</button>
+            <button type="button" class="pagination-button" disabled aria-label="次のページ">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                    <path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+    </section>
+
+    <aside class="permission-note">
+        <div class="permission-note-icon" aria-hidden="true">i</div>
+        <div>
+            <h2>ユーザ権限について</h2>
+            <p>・管理者：すべての機能を利用できます。ユーザの追加・編集・削除が可能です。</p>
+            <p>・一般ユーザ：書籍の検索、貸出、カートの利用など、一般的な機能のみ利用できます。</p>
+        </div>
+    </aside>
+</main>
+
+<div id="user-modal" class="modal user-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog user-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="user-modal-title">
+        <div class="modal-content user-modal-content">
+            <div class="modal-header user-modal-header">
+                <h2 id="user-modal-title" class="modal-title">ユーザを追加</h2>
+                <button type="button" class="modal-close user-modal-close" onclick="closeUserModal()" aria-label="閉じる">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                        <path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body user-modal-body">
+                <input type="hidden" id="modalUserId">
+                <label for="modalUserName">
+                    ユーザ名
+                    <input id="modalUserName" type="text" placeholder="田中 太郎" autocomplete="name">
+                </label>
+                <label for="modalEmail">
+                    メールアドレス
+                    <input id="modalEmail" type="email" placeholder="name@solxyz.co.jp" autocomplete="email">
+                </label>
+                <label for="modalPassword">
+                    パスワード
+                    <input id="modalPassword" type="password" placeholder="初期パスワード" maxlength="100" autocomplete="new-password">
+                </label>
+                <label class="admin-toggle" for="modalIsAdmin">
+                    <input id="modalIsAdmin" type="checkbox">
+                    <span>管理者として登録する</span>
+                </label>
+            </div>
+            <div class="modal-footer user-modal-footer">
+                <button type="button" class="secondary-action-button" onclick="closeUserModal()">キャンセル</button>
+                <button type="button" id="modalSubmitButton" class="primary-action-button" onclick="submitUserForm()">追加</button>
+            </div>
+        </div>
+    </div>
 </div>
 </body>
 </html>

@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" lang="ja">
 <head>
-    <title>Spring Security Example </title>
+    <title>書籍管理アプリ - 書籍一覧</title>
     <link th:href="@{/css/main.css}" rel="stylesheet">
-    <link th:href="@{/css/list.css}" rel="stylesheet">
     <link th:href="@{/css/modal.css}" rel="stylesheet">
     <link th:href="@{/css/button.css}" rel="stylesheet">
+    <link th:href="@{/css/list.css}" rel="stylesheet">
 
     <script th:src="@{/js/modal.js}"></script>
 
@@ -13,31 +13,133 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <script th:inline="javascript">
         /*<![CDATA[*/
-        const books = JSON.parse(/*[[ ${booksJson} ]]*/ null);
+        const books = JSON.parse(/*[[ ${booksJson} ]]*/ null) || [];
         /*]]>*/
+        const bookByIsbn = new Map(books.map(book => [book.isbn, book]));
 
         const csrfToken = document.querySelector('meta[name="_csrf"]').content;
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+        const openBdBatchSize = 20;
 
-        window.onload = () => {
-            const tableRows = document.querySelectorAll('.table-row');
+        function setText(id, value) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value ?? '';
+            }
+        }
+
+        function showCoverPlaceholder(img) {
+            const frame = img.closest('.book-cover-frame, .detail-cover-frame');
+            img.hidden = true;
+            img.removeAttribute('src');
+            img.removeAttribute('alt');
+            frame?.classList.remove('has-cover');
+        }
+
+        function applyCoverImage(img, book) {
+            if (!img || !book) {
+                return;
+            }
+            if (!book.coverUrl) {
+                showCoverPlaceholder(img);
+                return;
+            }
+            const frame = img.closest('.book-cover-frame, .detail-cover-frame');
+            img.onerror = () => showCoverPlaceholder(img);
+            img.hidden = false;
+            frame?.classList.add('has-cover');
+            img.src = book.coverUrl;
+            img.alt = `${book.title} の書影`;
+        }
+
+        function updateCartBadge(cartCount) {
+            document.querySelectorAll('.app-menu-badge').forEach(badge => {
+                badge.textContent = cartCount;
+            });
+        }
+
+        function applyHydratedCovers() {
+            document.querySelectorAll('[data-cover-isbn]').forEach(img => {
+                const book = bookByIsbn.get(img.getAttribute('data-cover-isbn'));
+                applyCoverImage(img, book);
+            });
+            document.dispatchEvent(new Event('book-covers-hydrated'));
+        }
+
+        async function hydrateOpenBdCovers() {
+            const isbnList = books.map(book => book.isbn).filter(Boolean);
+            if (isbnList.length === 0) {
+                return;
+            }
+
+            for (let index = 0; index < isbnList.length; index += openBdBatchSize) {
+                const batch = isbnList.slice(index, index + openBdBatchSize);
+                try {
+                    const response = await fetch(`/api/book/covers?isbn=${batch.map(encodeURIComponent).join(',')}`);
+                    if (!response.ok) {
+                        throw new Error('cover request failed');
+                    }
+                    const coverUrls = await response.json();
+                    batch.forEach(isbn => {
+                        const book = bookByIsbn.get(isbn);
+                        if (!book) {
+                            return;
+                        }
+                        if (coverUrls[isbn]) {
+                            book.coverUrl = coverUrls[isbn];
+                        } else {
+                            delete book.coverUrl;
+                        }
+                    });
+                } catch (error) {
+                    batch.forEach(isbn => {
+                        const book = bookByIsbn.get(isbn);
+                        if (book) {
+                            delete book.coverUrl;
+                        }
+                    });
+                    console.warn('openBDから書影を取得できませんでした。', error);
+                }
+                applyHydratedCovers();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const bookTriggers = document.querySelectorAll('.book-detail-trigger');
             const modalTitle = document.getElementById('modal-book-title');
+            const modalCover = document.getElementById('modal-book-cover');
+            const modalStock = document.getElementById('modal-book-stock');
+            const addCartButton = document.getElementById('add-cart');
             const modalDescription = document.getElementById('modal-book-description');
             let selectedBook = null;
 
-            tableRows.forEach(row => {
-                row.addEventListener('click', () => {
-                    console.log(row);
-                    const bookIndex = row.getAttribute('data-isbn');
-                    selectedBook = books.find(book => book.isbn === bookIndex);
+            bookTriggers.forEach(trigger => {
+                const selectBook = () => {
+                    const bookIndex = trigger.getAttribute('data-isbn');
+                    selectedBook = bookByIsbn.get(bookIndex);
+                    if (!selectedBook) {
+                        return;
+                    }
                     modalTitle.textContent = selectedBook.title;
+                    setText('modal-book-author', selectedBook.author);
+                    setText('modal-book-publisher', selectedBook.publisher);
+                    modalStock.textContent = `${selectedBook.availableStock} 冊`;
+                    modalStock.classList.toggle('is-empty', selectedBook.availableStock === 0);
+                    addCartButton.disabled = selectedBook.availableStock === 0;
+                    applyCoverImage(modalCover, selectedBook);
                     modalDescription.textContent = selectedBook.description;
-                });
+                };
+                trigger.addEventListener('click', selectBook);
             });
 
-            document.getElementById('add-cart').addEventListener('click', () => {
+            document.addEventListener('book-covers-hydrated', () => {
                 if (selectedBook) {
-                    // カートに追加処理
+                    applyCoverImage(modalCover, selectedBook);
+                }
+            });
+
+            addCartButton.addEventListener('click', () => {
+                if (selectedBook) {
                     fetch('/api/book/cart', {
                         method: 'POST',
                         headers: {
@@ -49,7 +151,10 @@
                         })
                     }).then(response => {
                         if (response.ok) {
-                            alert('カートに追加しました');
+                            return response.json().then(cartCount => {
+                                updateCartBadge(cartCount);
+                                alert('カートに追加しました');
+                            });
                         } else {
                             alert('カートに追加できませんでした');
                         }
@@ -58,59 +163,126 @@
                     });
                 }
             });
-        }
+            hydrateOpenBdCovers();
+        });
 
     </script>
 </head>
-<body>
+<body class="book-list-screen">
 
 <div id="foo"
      th:replace="~{common/nav-bar :: bar}"></div>
-<div class="table-container">
-    <table id="book-table" class="table">
-        <thead class="table-header">
-        <tr>
-            <th scope="col" class="table-cell">書籍名</th>
-            <th scope="col" class="table-cell">出版社</th>
-            <th scope="col" class="table-cell">著者名</th>
-            <th scope="col" class="table-cell">在庫</th>
-        </tr>
-        </thead>
-        <tbody>
+<main class="book-list-main">
+    <section class="page-heading">
+        <h1>書籍一覧</h1>
+        <p>登録されている書籍の一覧です。</p>
+    </section>
 
-        <tr th:each="book : ${books}" data-modal-target="default-modal" data-modal-toggle="default-modal" class="table-row" th:attr="data-isbn=${book.isbn}">
-            <th scope="row" class="table-cell font-medium" th:text="${book.title}"></th>
-            <td class="table-cell" th:text="${book.publisher}"></td>
-            <td class="table-cell" th:text="${book.author}"></td>
-            <td class="table-cell" th:text="${book.availableStock}"></td>
-        </tr>
+    <section class="table-container book-table-card">
+        <table id="book-table" class="table">
+            <thead class="table-header">
+            <tr>
+                <th scope="col" class="table-cell">書籍名</th>
+                <th scope="col" class="table-cell">出版社</th>
+                <th scope="col" class="table-cell">著者名</th>
+                <th scope="col" class="table-cell stock-column">在庫</th>
+            </tr>
+            </thead>
+            <tbody>
 
-        </tbody>
-    </table>
-</div>
+            <tr th:each="book : ${books}" class="table-row book-row">
+                <th scope="row" class="table-cell font-medium">
+                    <button type="button" data-modal-target="default-modal" data-modal-toggle="default-modal" class="book-title-cell book-detail-trigger" aria-haspopup="dialog" aria-controls="default-modal" th:attr="data-isbn=${book.isbn}, aria-label=${book.title + ' の詳細を開く'}">
+                        <span class="book-cover-frame">
+                            <img class="book-cover" th:attr="data-cover-isbn=${book.isbn}" th:alt="${book.title + ' の書影'}" loading="lazy" hidden>
+                            <span class="cover-placeholder" aria-hidden="true">
+                                <span class="cover-placeholder-text">NO IMAGE</span>
+                            </span>
+                        </span>
+                        <span class="book-title-group">
+                            <span class="book-title" th:text="${book.title}"></span>
+                        </span>
+                    </button>
+                </th>
+                <td class="table-cell" th:text="${book.publisher}"></td>
+                <td class="table-cell" th:text="${book.author}"></td>
+                <td class="table-cell stock-column">
+                    <span class="stock-state" th:classappend="${book.availableStock == 0} ? ' is-empty'">
+                        <span class="stock-count" th:text="${book.availableStock}"></span>
+                        <span class="stock-label" th:text="${book.availableStock == 0 ? '在庫なし' : '在庫あり'}"></span>
+                    </span>
+                </td>
+            </tr>
+
+            </tbody>
+        </table>
+        <div class="table-footer">
+            <span th:text="${'全' + bookCount + '件'}">全0件</span>
+        </div>
+    </section>
+</main>
 
 <!-- Main modal -->
-<div id="default-modal" class="modal" tabindex="-1" aria-hidden="true">
+<div id="default-modal" class="modal book-detail-modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="modal-book-title" aria-hidden="true">
     <div class="modal-dialog" data-modal-hide="default-modal">
-        <!-- Modal content -->
-        <div class="modal-content">
-            <!-- Modal header -->
-            <div class="modal-header">
-                <h3 id="modal-book-title" class="modal-title"></h3>
-                <button type="button" class="modal-close" data-modal-hide="default-modal">
+        <div class="modal-content book-detail-content">
+            <button type="button" class="modal-close book-detail-close" data-modal-hide="default-modal" aria-label="閉じる">
                     <svg class="modal-close-icon" data-modal-hide="default-modal" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                         <path stroke="currentColor" data-modal-hide="default-modal" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                     </svg>
-                    <span class="sr-only" data-modal-hide="default-modal" >Close modal</span>
-                </button>
-            </div>
-            <!-- Modal body -->
-            <div class="modal-body">
-                <p id="modal-book-description"></p>
-            </div>
-            <!-- Modal footer -->
-            <div class="modal-footer">
-                <button id="add-cart" data-modal-hide="default-modal" type="button" class="modal-accept add-button">カートに入れる</button>
+            </button>
+            <div class="book-detail-grid">
+                <div class="detail-cover-frame">
+                    <img id="modal-book-cover" class="detail-cover" alt="" hidden>
+                    <span class="cover-placeholder detail-cover-placeholder" aria-hidden="true">
+                        <span class="cover-placeholder-text">NO IMAGE</span>
+                    </span>
+                </div>
+                <div class="book-detail-summary">
+                    <h3 id="modal-book-title" class="modal-title"></h3>
+                    <dl class="book-detail-list">
+                        <div>
+                            <dt>
+                                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                                    <path d="M12 12.25a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="1.8"/>
+                                    <path d="M4.75 20.25a7.25 7.25 0 0 1 14.5 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                </svg>
+                                著者
+                            </dt>
+                            <dd id="modal-book-author"></dd>
+                        </div>
+                        <div>
+                            <dt>
+                                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                                    <path d="M5.75 20.25V8.75l6.25-4 6.25 4v11.5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                                    <path d="M9 20.25v-6h6v6" stroke="currentColor" stroke-width="1.8"/>
+                                </svg>
+                                出版社
+                            </dt>
+                            <dd id="modal-book-publisher"></dd>
+                        </div>
+                        <div>
+                            <dt>
+                                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                                    <path d="M5.75 7.25h12.5M5.75 12h12.5M5.75 16.75h7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                </svg>
+                                在庫数
+                            </dt>
+                            <dd><span id="modal-book-stock" class="detail-stock"></span></dd>
+                        </div>
+                    </dl>
+                    <p id="modal-book-description" class="book-detail-description"></p>
+                    <div class="book-detail-actions">
+                        <button data-modal-hide="default-modal" type="button" class="modal-action-button secondary-button">キャンセル</button>
+                        <button id="add-cart" data-modal-hide="default-modal" type="button" class="modal-action-button primary-button">
+                            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                                <path d="M4.5 5.25h2l1.6 9.2a2 2 0 0 0 1.97 1.65h6.75a2 2 0 0 0 1.95-1.56l1.02-4.54H8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M10 20.25h.01M17 20.25h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                            </svg>
+                            カートに入れる
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

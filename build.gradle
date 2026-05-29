@@ -1,14 +1,16 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.2.4'
-    id 'io.spring.dependency-management' version '1.1.4'
+    id 'org.springframework.boot' version '4.0.6'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'jp.co.solxyz.jsn'
 version = '0.0.1-SNAPSHOT'
 
 java {
-    sourceCompatibility = '17'
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 configurations {
@@ -27,46 +29,52 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.session:spring-session-core'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
-    implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.12'
-    // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
-    testImplementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.4.14'
-    // https://mvnrepository.com/artifact/org.springframework.session/spring-session-jdbc
-    implementation group: 'org.springframework.session', name: 'spring-session-jdbc', version: '3.2.2'
-    // https://mvnrepository.com/artifact/com.fasterxml.jackson.datatype/jackson-datatype-jsr310
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.0'
-    // https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-community-dialects
-    implementation 'org.hibernate.orm:hibernate-community-dialects'
+    implementation 'org.springframework.session:spring-session-jdbc'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    implementation 'org.jspecify:jspecify:1.0.0'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    runtimeOnly 'org.xerial:sqlite-jdbc:3.44.1.0'
-    // https://mvnrepository.com/artifact/org.hibernate/hibernate-validator
-    implementation 'org.hibernate:hibernate-validator:8.0.1.Final'
+    runtimeOnly 'com.h2database:h2'
 
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.jsoup:jsoup:1.22.2'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 17
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+    dependsOn 'setupDatabase'
 }
 
-// SQLiteDBを起動し、初期データを挿入する
-tasks.register('setupDatabase', Exec) {
-    // SQLiteのCLIのパス
-    def sqliteCmdPath = "${projectDir}/sqlite/sqlite3.exe"
+// H2DBを作成し、初期データを挿入する
+tasks.register('setupDatabase', JavaExec) {
+    group = 'database'
+    description = 'Create the local H2 database and load initial data.'
+
     // .sqlファイルのパス
     def sqlFilePath = 'sql/sql.sql'
-    // dbファイルの相対パス
-    def dbFilePath = './sqlite/spring_boot_advanced_exam.db'
+    // dbファイルのパス
+    def dbFilePath = file("${projectDir}/h2/spring_boot_advanced_exam.mv.db")
+    def dbDirPath = file("${projectDir}/h2")
+    def dbUrl = 'jdbc:h2:file:./h2/spring_boot_advanced_exam;DB_CLOSE_DELAY=-1'
+
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'org.h2.tools.RunScript'
+    workingDir = projectDir
 
     // dbファイルが重複するとエラーが出る
-    onlyIf { !file(dbFilePath).exists() }
-    commandLine sqliteCmdPath, dbFilePath, '.read ' + sqlFilePath
+    onlyIf { !dbFilePath.exists() }
+    doFirst {
+        dbDirPath.mkdirs()
+    }
+    args '-url', dbUrl, '-user', 'sa', '-script', sqlFilePath
 }
 
 bootRun.dependsOn setupDatabase

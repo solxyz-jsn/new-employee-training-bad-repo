@@ -1,0 +1,400 @@
+.lending-screen {
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at 88% 12%, rgba(47, 100, 229, 0.06), transparent 30%),
+        linear-gradient(135deg, #f9fbff 0%, #eef5ff 50%, #f8fbff 100%);
+}
+
+.lending-main {
+    width: min(1190px, calc(100vw - 394px));
+    margin: 56px 64px 44px 330px;
+}
+
+.lending-heading {
+    margin-bottom: 34px;
+}
+
+.lending-heading-title {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.lending-heading-icon,
+.lending-summary-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    color: #2f64e5;
+    background: #edf4ff;
+    border-radius: 999px;
+}
+
+.lending-heading-icon {
+    width: 54px;
+    height: 54px;
+}
+
+.lending-heading-icon svg {
+    width: 30px;
+    height: 30px;
+}
+
+.lending-heading h1 {
+    margin: 0;
+    color: #162033;
+    font-size: 34px;
+    line-height: 1.25;
+    font-weight: 800;
+}
+
+.lending-heading p {
+    margin: 10px 0 0 72px;
+    color: #5f6f85;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.lending-summary-card {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    margin-bottom: 34px;
+    padding: 28px 36px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #edf2f8;
+    border-radius: 8px;
+    box-shadow: 0 16px 36px rgba(25, 46, 86, 0.12);
+}
+
+.lending-summary-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    min-height: 96px;
+}
+
+.lending-summary-item + .lending-summary-item {
+    border-left: 1px solid #dce6f4;
+}
+
+.lending-summary-icon {
+    width: 64px;
+    height: 64px;
+}
+
+.lending-summary-icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+.lending-summary-label {
+    display: block;
+    margin-bottom: 8px;
+    color: #536176;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.lending-summary-item strong {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 12px;
+    color: #2f64e5;
+    font-size: 38px;
+    line-height: 1;
+    font-weight: 800;
+}
+
+.lending-summary-item strong span:last-child {
+    color: #162033;
+    font-size: 17px;
+}
+
+.lending-card {
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #edf2f8;
+    border-radius: 8px;
+    box-shadow: 0 16px 36px rgba(25, 46, 86, 0.12);
+    overflow: hidden;
+}
+
+.lending-empty-state {
+    margin: 0;
+    padding: 48px 24px;
+    color: #5f6f85;
+    font-size: 16px;
+    font-weight: 800;
+    text-align: center;
+}
+
+.lending-table-wrap {
+    overflow-x: auto;
+}
+
+.lending-table {
+    min-width: 1080px;
+    border-collapse: collapse;
+    color: #536176;
+    font-size: 15px;
+}
+
+.lending-table .table-header {
+    color: #2a3446;
+    background: rgba(247, 250, 253, 0.96);
+    font-size: 14px;
+    text-transform: none;
+}
+
+.lending-table .table-header .table-cell {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    font-weight: 800;
+}
+
+.lending-table .table-cell {
+    padding: 30px 12px;
+    vertical-align: middle;
+}
+
+.lending-row {
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.lending-book-cell {
+    display: grid;
+    grid-template-columns: 96px minmax(170px, 1fr);
+    align-items: center;
+    gap: 24px;
+}
+
+.lending-cover-frame {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 82px;
+    height: 118px;
+    background: #f8fafc;
+    border: 1px solid #edf2f8;
+    box-shadow: 0 8px 18px rgba(25, 46, 86, 0.08);
+    overflow: hidden;
+}
+
+.lending-cover-frame.has-cover .cover-placeholder {
+    display: none;
+}
+
+.lending-book-title-group {
+    display: flex;
+    align-items: center;
+}
+
+.lending-book-title {
+    color: #162033;
+    font-size: 18px;
+    line-height: 1.55;
+    font-weight: 800;
+}
+
+.lending-date,
+.lending-due {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #25324a;
+    font-weight: 800;
+}
+
+.lending-date svg {
+    width: 17px;
+    height: 17px;
+    color: #536176;
+}
+
+.lending-time {
+    display: block;
+    margin-top: 8px;
+    color: #536176;
+    font-weight: 700;
+}
+
+.lending-due {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.lending-due .lending-date {
+    color: #25324a;
+}
+
+.lending-remaining {
+    color: #16a060;
+    font-weight: 800;
+}
+
+.lending-remaining.is-due-soon {
+    color: #d97706;
+}
+
+.lending-remaining.is-overdue {
+    color: #dc2626;
+}
+
+.lending-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 4px 12px;
+    color: #159764;
+    background: #dff8e9;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.lending-status.is-due-soon {
+    color: #b45309;
+    background: #fef3c7;
+}
+
+.lending-status.is-overdue {
+    color: #dc2626;
+    background: #fee2e2;
+}
+
+.lending-return-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: auto;
+    max-width: none;
+    min-height: 42px;
+    margin: 0;
+    padding: 0 16px;
+    color: #25324a;
+    background: #ffffff;
+    border: 1px solid #b9c7dc;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 800;
+    opacity: 1;
+}
+
+.lending-return-button:hover {
+    color: #2f64e5;
+    border-color: #2f64e5;
+    background: #edf4ff;
+}
+
+.lending-return-button svg {
+    width: 18px;
+    height: 18px;
+}
+
+.lending-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 34px 24px;
+}
+
+.lending-pagination button,
+.lending-pagination span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    border-radius: 8px;
+    font-weight: 800;
+}
+
+.lending-pagination button {
+    max-width: none;
+    color: #8fa0b7;
+    background: #f8fafc;
+    border: 1px solid #dce6f4;
+    opacity: 0.55;
+}
+
+.lending-pagination button svg {
+    width: 20px;
+    height: 20px;
+}
+
+.lending-pagination span {
+    color: #2f64e5;
+    background: #edf4ff;
+    border: 1px solid #a9c4ff;
+}
+
+.lending-note {
+    display: flex;
+    gap: 16px;
+    margin-top: 24px;
+    padding: 22px 24px;
+    color: #536176;
+    background: rgba(238, 246, 255, 0.82);
+    border: 1px solid #bcd4ff;
+    border-radius: 8px;
+}
+
+.lending-note-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 auto;
+    color: #ffffff;
+    background: #2f64e5;
+    border-radius: 999px;
+    font-weight: 800;
+}
+
+.lending-note h2 {
+    margin: 0 0 6px;
+    color: #2f64e5;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.lending-note p {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.6;
+}
+
+@media (max-width: 960px) {
+    .lending-main {
+        width: auto;
+        margin: 24px 16px 32px;
+    }
+
+    .lending-heading p {
+        margin-left: 0;
+    }
+
+    .lending-summary-card {
+        grid-template-columns: 1fr;
+        padding: 20px;
+    }
+
+    .lending-summary-item {
+        justify-content: flex-start;
+    }
+
+    .lending-summary-item + .lending-summary-item {
+        border-top: 1px solid #dce6f4;
+        border-left: 0;
+    }
+}

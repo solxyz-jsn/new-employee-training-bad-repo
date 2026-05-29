@@ -63,6 +63,437 @@
     border: 0;
 }
 
+.book-list-screen {
+    background:
+        radial-gradient(circle at 90% 18%, rgba(47, 100, 229, 0.07), transparent 30%),
+        linear-gradient(135deg, #f7fbff 0%, #eef5ff 50%, #f8fbff 100%);
+}
+
+.book-list-main {
+    width: min(1190px, calc(100vw - 394px));
+    margin: 48px 64px 40px 330px;
+}
+
+.page-heading {
+    margin-bottom: 26px;
+}
+
+.page-heading h1 {
+    margin: 0 0 8px;
+    color: #162033;
+    font-size: 31px;
+    line-height: 1.25;
+    font-weight: 800;
+}
+
+.page-heading p {
+    margin: 0;
+    color: #5f6f85;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.book-table-card {
+    overflow-x: auto;
+    overflow-y: hidden;
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid #edf2f8;
+    border-radius: 8px;
+    box-shadow: 0 16px 36px rgba(25, 46, 86, 0.12);
+}
+
+.book-list-screen .table {
+    border-collapse: collapse;
+    color: #536176;
+    font-size: 16px;
+}
+
+.book-list-screen .table-header {
+    color: #2a3446;
+    background: rgba(247, 250, 253, 0.96);
+    font-size: 14px;
+    text-transform: none;
+}
+
+.book-list-screen .table-cell {
+    padding: 18px 24px;
+    vertical-align: middle;
+}
+
+.book-list-screen .table-header .table-cell {
+    padding-top: 16px;
+    padding-bottom: 16px;
+    font-weight: 800;
+}
+
+.book-list-screen .book-row {
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    min-height: 112px;
+    transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.book-list-screen .book-row:hover {
+    background: #f8fbff;
+    outline: none;
+}
+
+.book-title-cell {
+    display: grid;
+    grid-template-columns: 64px minmax(220px, 1fr);
+    align-items: center;
+    gap: 22px;
+}
+
+.book-detail-trigger {
+    width: 100%;
+    max-width: none;
+    min-height: auto;
+    margin: 0;
+    padding: 0;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    opacity: 1;
+}
+
+.book-detail-trigger:focus-visible {
+    outline: 3px solid rgba(47, 100, 229, 0.32);
+    outline-offset: 4px;
+}
+
+.book-cover-frame {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 58px;
+    height: 82px;
+    background: #f8fafc;
+    border: 1px solid #edf2f8;
+    box-shadow: 0 8px 18px rgba(25, 46, 86, 0.08);
+    overflow: hidden;
+}
+
+.book-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.cover-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    color: #333333;
+    background: #dcdcdc;
+    font-weight: 500;
+    text-align: center;
+}
+
+.cover-placeholder-text {
+    position: relative;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    font-size: 10px;
+    line-height: 1;
+    letter-spacing: 0;
+    white-space: nowrap;
+}
+
+.book-cover-frame.has-cover .cover-placeholder,
+.detail-cover-frame.has-cover .cover-placeholder {
+    display: none;
+}
+
+.book-title-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.book-title {
+    color: #162033;
+    font-size: 18px;
+    line-height: 1.4;
+    font-weight: 800;
+}
+
+.stock-column {
+    width: 160px;
+    text-align: center;
+}
+
+.stock-state {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    color: #25a468;
+    font-weight: 800;
+}
+
+.stock-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 50px;
+    height: 32px;
+    padding: 0 14px;
+    color: #149256;
+    background: #dff8ea;
+    border-radius: 999px;
+    font-size: 17px;
+}
+
+.stock-state.is-empty {
+    color: #536176;
+}
+
+.stock-state.is-empty .stock-count {
+    color: #162033;
+    background: #f1f5f9;
+}
+
+.stock-label {
+    font-size: 13px;
+}
+
+.table-footer {
+    display: flex;
+    align-items: center;
+    min-height: 68px;
+    padding: 0 24px;
+    color: #536176;
+    border-top: 1px solid #edf2f8;
+    font-weight: 700;
+}
+
+.book-detail-modal {
+    padding: 24px;
+}
+
+.book-detail-modal .modal-dialog {
+    width: min(742px, calc(100vw - 48px));
+}
+
+.book-detail-content {
+    width: 100%;
+    max-width: none;
+    padding: 42px 40px 38px;
+    border-radius: 8px;
+    box-shadow: 0 24px 60px rgba(5, 19, 43, 0.28);
+}
+
+.book-detail-close {
+    position: absolute;
+    top: 22px;
+    right: 22px;
+    width: 36px;
+    height: 36px;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    color: #7b8798;
+    opacity: 1;
+}
+
+.book-detail-grid {
+    display: grid;
+    grid-template-columns: 218px minmax(0, 1fr);
+    gap: 34px;
+    align-items: start;
+}
+
+.detail-cover-frame {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 310px;
+    padding: 10px;
+    background: #ffffff;
+    border: 1px solid #e4ebf5;
+    border-radius: 8px;
+    box-shadow: 0 10px 24px rgba(25, 46, 86, 0.12);
+    overflow: hidden;
+}
+
+.detail-cover {
+    width: 100%;
+    max-height: 290px;
+    object-fit: contain;
+    display: block;
+}
+
+.detail-cover-placeholder .cover-placeholder-text {
+    font-size: 40px;
+}
+
+.book-detail-summary {
+    min-width: 0;
+    padding-top: 4px;
+}
+
+.book-detail-summary .modal-title {
+    margin: 0 38px 22px 0;
+    color: #162033;
+    font-size: 24px;
+    line-height: 1.35;
+    font-weight: 800;
+}
+
+.book-detail-list {
+    display: grid;
+    gap: 18px;
+    margin: 0 0 24px;
+    padding: 0 0 24px;
+    border-bottom: 1px solid #e5ebf3;
+}
+
+.book-detail-list div {
+    display: grid;
+    grid-template-columns: 128px 1fr;
+    align-items: center;
+    gap: 18px;
+}
+
+.book-detail-list dt {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #5f6f85;
+    font-weight: 800;
+}
+
+.book-detail-list dt svg {
+    width: 22px;
+    height: 22px;
+    color: #7c8aa0;
+}
+
+.book-detail-list dd {
+    margin: 0;
+    color: #4b5a70;
+    font-weight: 700;
+}
+
+.detail-stock {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 16px;
+    color: #149256;
+    background: #dff8ea;
+    border-radius: 999px;
+    font-weight: 800;
+}
+
+.detail-stock.is-empty {
+    color: #162033;
+    background: #f1f5f9;
+}
+
+.book-detail-description {
+    margin: 0 0 26px;
+    color: #536176;
+    font-size: 15px;
+    line-height: 1.8;
+    font-weight: 600;
+}
+
+.book-detail-actions {
+    display: grid;
+    grid-template-columns: 1fr 1.25fr;
+    gap: 16px;
+}
+
+.modal-action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    max-width: none;
+    min-height: 52px;
+    margin: 0;
+    padding: 0 18px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 800;
+    opacity: 1;
+}
+
+.modal-action-button svg {
+    width: 22px;
+    height: 22px;
+}
+
+.secondary-button {
+    color: #536176;
+    background: #ffffff;
+    border: 1px solid #ccd6e5;
+}
+
+.primary-button {
+    color: #ffffff;
+    background: linear-gradient(135deg, #2f64e5, #3c5ef5);
+    border: 1px solid #2f64e5;
+    box-shadow: 0 10px 22px rgba(47, 100, 229, 0.24);
+}
+
+.primary-button:disabled {
+    color: #748094;
+    background: #edf2f7;
+    border-color: #dbe3ee;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+@media (max-width: 1120px) {
+    .book-list-main {
+        width: auto;
+        margin-right: 32px;
+    }
+}
+
+@media (max-width: 960px) {
+    .book-list-main {
+        width: auto;
+        margin: 32px 16px 48px;
+    }
+
+    .book-list-screen .table {
+        min-width: 860px;
+    }
+}
+
+@media (max-width: 720px) {
+    .table-footer {
+        padding: 18px;
+    }
+
+    .book-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-cover-frame {
+        min-height: 260px;
+    }
+
+    .book-detail-content {
+        padding: 34px 22px 24px;
+    }
+}
+
 @media (prefers-color-scheme: dark) {
     .table {
         color: #9ca3af;

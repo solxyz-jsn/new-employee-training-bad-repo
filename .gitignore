@@ -1,4 +1,6 @@
+.gradle
 build
 logs
 *.db
+.idea
 .DS_Store
