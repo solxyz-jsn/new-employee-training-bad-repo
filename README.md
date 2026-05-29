@@ -55,9 +55,13 @@
 
 ### リファクタリング（4）学んだことを活かした総合リファクタリング
 
-- 対象: `src/main/java/jp/co/solxyz/jsn/springbootadvancedexam/application/book/lending/BookLendingUseCase.java`
+- 対象:
+  - `src/main/java/jp/co/solxyz/jsn/springbootadvancedexam/application/book/lending/BookLendingUseCase.java`
+  - `src/main/java/jp/co/solxyz/jsn/springbootadvancedexam/component/book/lending/BookLendingManager.java`
+  - `src/main/java/jp/co/solxyz/jsn/springbootadvancedexam/presentation/user/book/controller/BookController.java`
+- リファクタリング（3）で Controller を分割した場合は、作成した `BookCartController.java` や `BookReturnController.java` も対象に含めてください。
 - 命名、Javadoc、DRY、単一責任、マジックナンバー、現在日時への直接依存、例外処理、テストしやすさを見直してください。
-- 例: `getBook`、`henkyaku`、`uid`、`i`、`blm`
+- 例: `getBook`、`henkyaku`、`uid`、`i`、`blm`、`LocalDateTime.now()`、`UUID.randomUUID()`、`14`
 - PDF 上の旧対象: `/app/user/book/service/BookLendingService.java`
 
 ## 進め方
