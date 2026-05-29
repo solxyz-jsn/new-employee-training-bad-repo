@@ -31,19 +31,38 @@
 
 ## 課題
 
-1. `app` 配下の責務を整理し、画面/API の層とユースケースの層を分ける
-2. `BookController` を書籍一覧、カート、返却の Controller に分割する
-3. `BookListService`、`BookCartService`、`BookLendingService` の命名、責務、戻り値を見直す
-4. presentation 層へ Entity を直接渡さず、画面/API 用の DTO や summary に変換する
-5. `co`、`henkyaku`、`bim`、`blm` など、意図が伝わりにくい名前を直す
-6. `LocalDateTime.now()`、`Instant.now()`、`UUID.randomUUID()` への直接依存を `Clock` や `UUIDGenerator` の注入に置き換える
-7. 書影取得 API を外部サービス連携やキャッシュを含めて実装する
-8. 重複した処理、過剰な例外処理、テストしづらい実装を整理する
-9. 既存テストを通したまま、小さく安全にリファクタリングする
+この課題では、PDF「ソルクシーズスタンダード概説」の演習に沿って、可読性を高めるための小さなリファクタリングを行います。
+パッケージ名やファイル名は解答例に合わせていますが、課題として改善すべき実装は残しています。
+
+### リファクタリング（1）Javadoc の記述
+
+- 対象: `src/main/java/jp/co/solxyz/jsn/springbootadvancedexam/application/book/catalog/BookListUseCase.java`
+- クラス、フィールド、コンストラクタ、メソッドの役割が読み手に伝わるように Javadoc を記述してください。
+- PDF 上の旧対象: `/app/user/book/service/BookListService.java`
+
+### リファクタリング（2）命名規則に従う
+
+- 対象: `src/main/java/jp/co/solxyz/jsn/springbootadvancedexam/application/book/cart/BookCartUseCase.java`
+- 意味が不明確な名前、抽象的すぎる名前、タイプミス、不適切な短縮を修正してください。
+- 例: `co`、`cars`、`bim`、`blm`、`temp`、`bList`、`cBL`、`iLis`
+- PDF 上の旧対象: `/app/user/book/service/BookCartService.java`
+
+### リファクタリング（3）単一責任の原則に沿った Controller の整理
+
+- 対象: `src/main/java/jp/co/solxyz/jsn/springbootadvancedexam/presentation/user/book/controller/BookController.java`
+- 1 つの Controller に書籍一覧、カート、返却の処理がまとまっています。単一責任の原則に沿って、機能ごとの Controller に分割してください。
+- PDF 上の旧対象: `/app/user/book/controller/BookController.java`
+
+### リファクタリング（4）学んだことを活かした総合リファクタリング
+
+- 対象: `src/main/java/jp/co/solxyz/jsn/springbootadvancedexam/application/book/lending/BookLendingUseCase.java`
+- 命名、Javadoc、DRY、単一責任、マジックナンバー、現在日時への直接依存、例外処理、テストしやすさを見直してください。
+- 例: `getBook`、`henkyaku`、`uid`、`i`、`blm`
+- PDF 上の旧対象: `/app/user/book/service/BookLendingService.java`
 
 ## 進め方
 
 最初に `./gradlew test` が成功することを確認してください。
 その後、1 つの課題ごとに小さく変更し、テストを実行しながら進めます。
 
-完成形では、パッケージ構成が `presentation`、`application`、`component`、`infrastructure`、`common` の責務に沿って整理されている状態を目指します。
+一部のファイル名や package は解答例と同じものになっていますが、メソッド名、変数名、責務分担、コメントの内容は課題として改善できる状態になっています。
